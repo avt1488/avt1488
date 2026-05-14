@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StoryTimeSG – Live Storytelling for Children</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: { fontFamily: { display: ['"Fredoka One"', 'cursive'], sans: ['"Nunito"', 'sans-serif'] } } }
+}
+</script>
+<style>
+  body { font-family: 'Nunito', sans-serif; }
+  .font-display { font-family: 'Fredoka One', cursive !important; }
+  @keyframes float  { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-14px)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0)}  50%{transform:translateY(12px)}  }
+  @keyframes wiggle { 0%,100%{transform:rotate(-12deg)} 50%{transform:rotate(12deg)}     }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideR { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes popIn  { from{opacity:0;transform:scale(0.75)} to{opacity:1;transform:scale(1)} }
+  .a-float  { animation: float  5s ease-in-out infinite; }
+  .a-float2 { animation: float2 4s ease-in-out infinite 1s; }
+  .a-wiggle { animation: wiggle 6s ease-in-out infinite 0.5s; }
+  .a-fadein { animation: fadeUp 0.4s ease-out; }
+  .a-slide  { animation: slideR 0.35s ease-out; }
+  .a-pop    { animation: popIn  0.45s cubic-bezier(0.34,1.56,0.64,1); }
+  .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+  .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(0,0,0,.12); }
+  .lc2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden }
+  .lc3 { display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden }
+  .slot-btn { transition: border-color .15s, background-color .15s, box-shadow .15s; }
+  .slot-btn:hover  { border-color:#a855f7; box-shadow:0 2px 8px rgba(168,85,247,.15); }
+  .slot-btn.sel    { border-color:#9333ea; background-color:#f5f3ff; box-shadow:0 2px 12px rgba(147,51,234,.2); }
+  input,select,textarea { outline:none; }
+  input:focus,select:focus,textarea:focus { box-shadow:0 0 0 3px rgba(168,85,247,.2); }
+</style>
+</head>
+<body class="bg-white">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-purple-100 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <a href="#/" class="flex items-center gap-2 group">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+        <span class="text-white text-lg">✨</span>
+      </div>
+      <span class="font-display text-xl text-purple-700">StoryTime<span class="text-pink-500">SG</span></span>
+    </a>
+    <div class="flex items-center gap-1">
+      <a id="nav-home"     href="#/"           class="nav-link relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all">🏠 <span class="hidden sm:inline">Home</span></a>
+      <a id="nav-stories"  href="#/stories"    class="nav-link relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all">📚 <span class="hidden sm:inline">Stories</span></a>
+      <a id="nav-bookings" href="#/my-bookings" class="nav-link relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all">📅 <span class="hidden sm:inline">My Bookings</span>
+        <span id="bk-badge" style="display:none" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-pink-500 text-white text-xs flex items-center justify-center font-bold">0</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main id="main"></main>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+function genSlots(seed) {
+  const base = new Date('2026-05-15'), slots = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(base);
+    d.setDate(d.getDate() + ((seed * 3 + i * 2) % 30));
+    d.setHours([9,10,11,14,15,16][(seed + i) % 6], 0, 0, 0);
+    slots.push({ id:`${seed}-${i}`, datetime: new Date(d), spots: Math.max(1,((seed*7+i*3)%6)+1) });
+  }
+  return slots.sort((a,b) => a.datetime - b.datetime);
+}
+
+const STORIES = [
+  { id:1, title:'The Jade Dragon',          titleZh:'玉龙传说',   language:'zh',       languageLabel:'Chinese 中文',   ageRange:'4–7', duration:45, price:28, emoji:'🐉', bg:'bg-red-50',    border:'border-red-200',    badge:'bg-red-100 text-red-700',       gradient:'from-red-400 to-orange-400',    description:'Journey through ancient China with a legendary jade dragon. Children discover courage, friendship, and the magic of the Lunar New Year.',             highlights:['Mandarin vocabulary','Cultural traditions','Interactive props'],   slots:genSlots(1) },
+  { id:2, title:'The Moonlight Rabbit',     titleZh:'月亮兔',     language:'zh',       languageLabel:'Chinese 中文',   ageRange:'3–6', duration:30, price:22, emoji:'🐰', bg:'bg-purple-50', border:'border-purple-200', badge:'bg-purple-100 text-purple-700', gradient:'from-purple-400 to-pink-400',   description:'A gentle bedtime tale about the rabbit on the moon who makes special moon cakes for children who dream big.',                                            highlights:['Mid-Autumn Festival','Nursery rhymes','Felt puppets'],            slots:genSlots(2) },
+  { id:3, title:'The Enchanted Library',                          language:'en',       languageLabel:'English',        ageRange:'5–8', duration:45, price:28, emoji:'📚', bg:'bg-sky-50',    border:'border-sky-200',    badge:'bg-sky-100 text-sky-700',       gradient:'from-sky-400 to-teal-400',      description:'A young girl discovers a library where every book whisks her into a different adventure. Perfect for budding readers.',                                  highlights:['Phonics fun','Character voices','Story maps'],                    slots:genSlots(3) },
+  { id:4, title:'Bramble & the Brave Bees',                       language:'en',       languageLabel:'English',        ageRange:'3–5', duration:30, price:22, emoji:'🐝', bg:'bg-yellow-50', border:'border-yellow-200', badge:'bg-yellow-100 text-yellow-700', gradient:'from-yellow-400 to-amber-400',  description:'Bramble the bear and his buzzy friends learn that teamwork makes every honey jar sweeter. Packed with songs and movement.',                             highlights:['Songs & movement','Nature themes','Plush puppets'],               slots:genSlots(4) },
+  { id:5, title:'Five Little Tigers',       titleZh:'五只小老虎', language:'bilingual', languageLabel:'Bilingual 双语', ageRange:'3–7', duration:60, price:38, emoji:'🐯', bg:'bg-orange-50', border:'border-orange-200', badge:'bg-orange-100 text-orange-700', gradient:'from-orange-400 to-pink-500',   description:'Our flagship bilingual session weaves Chinese and English together seamlessly — ideal for multilingual families.',                                       highlights:['Chinese + English','Count & rhyme','Certificate of bravery'],     slots:genSlots(5) },
+  { id:6, title:'Dragon Boat Adventure',    titleZh:'龙舟历险记', language:'bilingual', languageLabel:'Bilingual 双语', ageRange:'5–9', duration:60, price:38, emoji:'🚣', bg:'bg-teal-50',   border:'border-teal-200',   badge:'bg-teal-100 text-teal-700',     gradient:'from-teal-400 to-cyan-500',     description:'Paddle through the Dragon Boat Festival story in both languages, with drums, craft-making, and cultural discovery.',                                    highlights:['Dragon Boat culture','Craft activity','Bilingual narration'],     slots:genSlots(6) },
+];
+
+const TESTIMONIALS = [
+  { name:'Sarah Lim',    child:'Mum of Emma, age 5',      text:"Emma couldn't stop talking about the jade dragon for days! The storyteller made the Chinese characters come alive in the most magical way." },
+  { name:'Wei Ming Tan', child:'Dad of Lucas, age 7',     text:"As a bilingual family, we've struggled to keep Chinese fun. This storytelling session changed everything — Lucas is now asking for more!" },
+  { name:'Priya Nair',   child:'Mum of Arjun & Meera',   text:"Both my kids (ages 4 and 6) sat completely still for the whole session. The storyteller's energy and props are just incredible." },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let bookings = [];
+let bs = { storyId:null, step:0, slot:null, form:{parentName:'',childName:'',childAge:'',email:'',phone:'',note:''}, errors:{} };
+let sf = { lang:'all', age:'all', q:'' };
+
+function loadBk() {
+  try { bookings = JSON.parse(localStorage.getItem('stsg')||'[]').map(b=>({...b,slot:{...b.slot,datetime:new Date(b.slot.datetime)}})); }
+  catch { bookings=[]; }
+}
+function saveBk() { localStorage.setItem('stsg', JSON.stringify(bookings)); }
+loadBk();
+
+// ─── ROUTING ──────────────────────────────────────────────────────────────────
+function nav(path) { window.location.hash = '#'+path; window.scrollTo(0,0); }
+function route()   { return (window.location.hash||'#/').slice(1)||'/'; }
+
+window.addEventListener('hashchange', () => { window.scrollTo(0,0); render(); });
+
+function updateNav() {
+  const r = route();
+  document.querySelectorAll('.nav-link').forEach(el => {
+    el.classList.remove('bg-purple-100','text-purple-700');
+    el.classList.add('text-gray-500','hover:bg-gray-100','hover:text-gray-800');
+  });
+  const active = id => {
+    const el = document.getElementById(id);
+    el.classList.add('bg-purple-100','text-purple-700');
+    el.classList.remove('text-gray-500','hover:bg-gray-100','hover:text-gray-800');
+  };
+  if (r==='/'||r==='')       active('nav-home');
+  else if (r.startsWith('/stories')) active('nav-stories');
+  else if (r==='/my-bookings')       active('nav-bookings');
+
+  const badge = document.getElementById('bk-badge');
+  if (bookings.length > 0) { badge.textContent = bookings.length; badge.style.display='flex'; }
+  else badge.style.display='none';
+}
+
+function render() {
+  loadBk(); updateNav();
+  const r = route(), main = document.getElementById('main');
+  if (r==='/'||r==='')           main.innerHTML = pageHome();
+  else if (r==='/stories')       { main.innerHTML = pageStories(); bindStories(); }
+  else if (/^\/stories\/\d+$/.test(r)) {
+    const id = parseInt(r.split('/')[2]);
+    if (bs.storyId!==id || bs.step===4) bs={storyId:id,step:0,slot:null,form:{parentName:'',childName:'',childAge:'',email:'',phone:'',note:''},errors:{}};
+    main.innerHTML = pageDetail();
+  }
+  else if (r==='/my-bookings')   main.innerHTML = pageBookings();
+  else main.innerHTML = '<div class="p-20 text-center text-gray-400">Page not found.</div>';
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d, opts) { return new Date(d).toLocaleDateString('en-SG', opts); }
+function fmtTime(d)       { return new Date(d).toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'}); }
+
+// ─── STORY CARD (shared) ──────────────────────────────────────────────────────
+function storyCard(s) {
+  const next = s.slots.find(sl=>sl.spots>0);
+  const nextTxt = next ? fmtDate(next.datetime,{month:'short',day:'numeric'}) : null;
+  return `
+  <a href="#/stories/${s.id}" class="flex flex-col h-full ${s.bg} border ${s.border} rounded-3xl p-6 hover-lift block no-underline">
+    <div class="flex items-start justify-between mb-4">
+      <div class="text-5xl">${s.emoji}</div>
+      <div class="text-xs font-bold px-2.5 py-1 rounded-full ${s.badge}">${s.languageLabel}</div>
+    </div>
+    <h3 class="font-display text-xl text-gray-800 mb-0.5">${esc(s.title)}</h3>
+    ${s.titleZh?`<p class="text-sm text-gray-500 mb-2">${s.titleZh}</p>`:''}
+    <p class="text-gray-600 text-sm leading-relaxed flex-1 mb-4 lc3">${esc(s.description)}</p>
+    <div class="flex flex-wrap gap-2 mb-4">
+      ${s.highlights.map(h=>`<span class="text-xs bg-white/70 border border-white rounded-full px-2.5 py-0.5 text-gray-600 font-medium">${h}</span>`).join('')}
+    </div>
+    <div class="flex items-center gap-3 text-xs text-gray-500 mb-4">
+      <span>⏱ ${s.duration} min</span><span>👶 Age ${s.ageRange}</span>
+    </div>
+    <div class="flex items-center justify-between pt-4 border-t border-white/60">
+      <div>
+        <span class="font-display text-2xl text-gray-800">S$${s.price}</span><span class="text-xs text-gray-400"> /child</span>
+        ${nextTxt?`<p class="text-xs text-green-600 font-medium mt-0.5">Next: ${nextTxt}</p>`:''}
+      </div>
+      <span class="inline-flex items-center gap-1 bg-purple-600 text-white font-bold text-sm px-4 py-2 rounded-xl">Book →</span>
+    </div>
+  </a>`;
+}
+
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+function pageHome() {
+  return `
+  <div class="overflow-x-hidden">
+    <section class="relative min-h-[88vh] flex items-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 overflow-hidden">
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
+        <div class="absolute -bottom-24 -right-24 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-3xl"></div>
+      </div>
+      <div class="absolute top-16 right-[8%] text-7xl select-none a-float">📖</div>
+      <div class="absolute bottom-20 left-[6%] text-6xl select-none a-float2">🌟</div>
+      <div class="absolute top-32 left-[18%] text-5xl select-none a-wiggle">🐉</div>
+      <div class="absolute bottom-28 right-[20%] text-5xl select-none a-float hidden md:block">🎭</div>
+      <div class="relative max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center w-full">
+        <div class="text-white a-fadein">
+          <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-semibold mb-6">⭐ Loved by 500+ families in Singapore</div>
+          <h1 class="font-display text-5xl md:text-6xl lg:text-7xl leading-tight mb-6">Where Little<br><span class="text-yellow-300">Imaginations</span><br>Come Alive</h1>
+          <p class="text-white/90 text-lg md:text-xl leading-relaxed mb-8 max-w-lg">Live storytelling sessions in <strong>Chinese</strong> and <strong>English</strong> for children aged 3–9. Book a session and let the adventure begin!</p>
+          <div class="flex flex-wrap gap-4">
+            <a href="#/stories" class="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-7 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base">Browse Sessions →</a>
+            <a href="#/my-bookings" class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-bold px-7 py-3.5 rounded-2xl border border-white/40 hover:bg-white/30 transition-all text-base">My Bookings</a>
+          </div>
+        </div>
+        <div class="hidden md:block a-fadein">
+          <div class="bg-white/20 backdrop-blur-md rounded-3xl p-8 border border-white/30 text-white">
+            <div class="grid grid-cols-2 gap-6">
+              ${[['👨‍👩‍👧‍👦','500+','Happy Families'],['🌐','2','Languages'],['📖','6+','Story Titles'],['⭐','4.9','Avg. Rating']].map(([ic,n,l])=>`
+              <div class="flex flex-col items-center text-center">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-3 text-2xl">${ic}</div>
+                <div class="font-display text-4xl text-yellow-300">${n}</div>
+                <div class="text-sm text-white/80 font-medium">${l}</div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-14">
+          <h2 class="font-display text-4xl text-gray-800 mb-3">How It Works</h2>
+          <p class="text-gray-500 text-lg">Three easy steps to a magical story experience</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+          ${[
+            {n:'01',e:'🔍',t:'Choose Your Story',  d:'Browse our collection of Chinese, English, and bilingual sessions. Filter by age group and language.',g:'from-purple-500 to-pink-500'},
+            {n:'02',e:'📅',t:'Pick a Time Slot',   d:'Select a date and time that suits your family. Morning and afternoon sessions available.',g:'from-pink-500 to-orange-400'},
+            {n:'03',e:'✨',t:'Enjoy the Magic',    d:"Show up and let our storyteller do the rest. Your child will be captivated from start to finish!",g:'from-orange-400 to-yellow-400'},
+          ].map(({n,e,t,d,g})=>`
+          <div class="relative bg-gray-50 rounded-3xl p-8 border border-gray-100 hover:shadow-lg transition-shadow">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${g} flex items-center justify-center text-2xl mb-5 shadow-md">${e}</div>
+            <div class="absolute top-6 right-6 font-display text-5xl text-gray-100 select-none">${n}</div>
+            <h3 class="font-display text-xl text-gray-800 mb-2">${t}</h3>
+            <p class="text-gray-500 leading-relaxed text-sm">${d}</p>
+          </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <section class="py-20 bg-purple-50">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="flex items-end justify-between mb-12">
+          <div><h2 class="font-display text-4xl text-gray-800 mb-2">Featured Stories</h2><p class="text-gray-500 text-lg">Most loved by our little readers</p></div>
+          <a href="#/stories" class="hidden sm:inline-flex items-center gap-1.5 text-purple-600 font-bold hover:text-purple-800 transition-colors">View all →</a>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">${STORIES.slice(0,3).map(storyCard).join('')}</div>
+        <div class="mt-10 text-center sm:hidden"><a href="#/stories" class="inline-flex items-center gap-2 bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl hover:bg-purple-700">View all stories →</a></div>
+      </div>
+    </section>
+
+    <section class="py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-14">
+          <h2 class="font-display text-4xl text-gray-800 mb-3">What Parents Say</h2>
+          <p class="text-gray-500 text-lg">Real stories from real families</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          ${TESTIMONIALS.map(t=>`
+          <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6 border border-purple-100">
+            <div class="flex gap-1 mb-4">${'⭐'.repeat(5)}</div>
+            <p class="text-gray-700 leading-relaxed mb-5 text-sm">"${esc(t.text)}"</p>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm">${t.name[0]}</div>
+              <div><div class="font-semibold text-gray-800 text-sm">${esc(t.name)}</div><div class="text-xs text-gray-400">${esc(t.child)}</div></div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <section class="py-16 bg-gradient-to-r from-purple-600 to-pink-500">
+      <div class="max-w-3xl mx-auto px-6 text-center">
+        <div class="text-5xl mb-5">🎉</div>
+        <h2 class="font-display text-4xl text-white mb-4">Ready for a Story Adventure?</h2>
+        <p class="text-white/85 text-lg mb-8">First session 20% off for new families. Use code <span class="bg-white/20 rounded-lg px-2 py-0.5 font-mono font-bold">STORY20</span> at checkout.</p>
+        <a href="#/stories" class="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">Book Your First Session →</a>
+      </div>
+    </section>
+
+    <footer class="bg-gray-900 text-gray-400 py-10 text-center text-sm">
+      <div class="font-display text-lg text-white mb-2">StoryTime<span class="text-pink-400">SG</span></div>
+      <p>Chinese & English storytelling for children · Singapore</p>
+      <p class="mt-2 text-gray-600">© 2026 StoryTimeSG · hello@storytimesg.com</p>
+    </footer>
+  </div>`;
+}
+
+// ─── STORIES PAGE ─────────────────────────────────────────────────────────────
+function filteredStories() {
+  return STORIES.filter(s => {
+    if (sf.lang!=='all' && s.language!==sf.lang) return false;
+    if (sf.age!=='all') {
+      const [mn,mx]=sf.age.split('-').map(Number), [sn,sx]=s.ageRange.split('–').map(Number);
+      if (sx<mn||sn>mx) return false;
+    }
+    if (sf.q) { const q=sf.q.toLowerCase(); if (!s.title.toLowerCase().includes(q)&&!(s.titleZh||'').includes(q)&&!s.description.toLowerCase().includes(q)) return false; }
+    return true;
+  });
+}
+
+const LANG_F = [{v:'all',l:'All Stories'},{v:'zh',l:'中文 Chinese'},{v:'en',l:'English'},{v:'bilingual',l:'Bilingual 双语'}];
+const AGE_F  = [{v:'all',l:'All Ages'},{v:'3-5',l:'Age 3–5'},{v:'5-8',l:'Age 5–8'}];
+
+function pageStories() {
+  const list = filteredStories();
+  return `
+  <div class="min-h-screen bg-gray-50">
+    <div class="bg-gradient-to-br from-purple-600 to-pink-500 py-14">
+      <div class="max-w-6xl mx-auto px-6 text-center text-white">
+        <h1 class="font-display text-5xl mb-3">Our Story Collection</h1>
+        <p class="text-white/85 text-lg max-w-xl mx-auto">Handcrafted tales in Chinese, English, and bilingual — for every curious little mind.</p>
+      </div>
+    </div>
+    <div class="sticky top-16 z-40 bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-wrap">
+        <div class="relative flex-1 min-w-[180px]">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+          <input id="s-search" type="text" placeholder="Search stories…" value="${esc(sf.q)}" class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm">
+        </div>
+        <div class="flex flex-wrap gap-2" id="lang-bar">
+          ${LANG_F.map(f=>`<button data-lang="${f.v}" class="lf-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${sf.lang===f.v?'bg-purple-600 text-white border-purple-600':'bg-white text-gray-600 border-gray-200'}">${f.l}</button>`).join('')}
+        </div>
+        <div class="flex flex-wrap gap-2" id="age-bar">
+          ${AGE_F.map(f=>`<button data-age="${f.v}" class="af-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${sf.age===f.v?'bg-pink-500 text-white border-pink-500':'bg-white text-gray-600 border-gray-200'}">${f.l}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 py-10" id="s-grid">
+      ${storiesGrid(list)}
+    </div>
+  </div>`;
+}
+
+function storiesGrid(list) {
+  if (!list.length) return `<div class="text-center py-20"><div class="text-6xl mb-4">🔍</div><p class="text-gray-500 text-lg">No stories match your filters.</p><button onclick="clearSF()" class="mt-4 text-purple-600 font-bold hover:underline">Clear all filters</button></div>`;
+  return `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 a-fadein">${list.map(storyCard).join('')}</div>`;
+}
+
+function clearSF() { sf={lang:'all',age:'all',q:''}; document.getElementById('s-search').value=''; rebuildSF(); refreshGrid(); }
+
+function rebuildSF() {
+  document.getElementById('lang-bar').innerHTML = LANG_F.map(f=>`<button data-lang="${f.v}" class="lf-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${sf.lang===f.v?'bg-purple-600 text-white border-purple-600':'bg-white text-gray-600 border-gray-200'}">${f.l}</button>`).join('');
+  document.getElementById('age-bar').innerHTML  = AGE_F.map(f=>`<button data-age="${f.v}" class="af-btn px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${sf.age===f.v?'bg-pink-500 text-white border-pink-500':'bg-white text-gray-600 border-gray-200'}">${f.l}</button>`).join('');
+  bindFilterBtns();
+}
+
+function refreshGrid() { document.getElementById('s-grid').innerHTML = storiesGrid(filteredStories()); }
+
+function bindFilterBtns() {
+  document.querySelectorAll('.lf-btn').forEach(b=>b.addEventListener('click',()=>{sf.lang=b.dataset.lang;rebuildSF();refreshGrid();}));
+  document.querySelectorAll('.af-btn').forEach(b=>b.addEventListener('click',()=>{sf.age=b.dataset.age;rebuildSF();refreshGrid();}));
+}
+
+function bindStories() {
+  document.getElementById('s-search').addEventListener('input',e=>{sf.q=e.target.value;refreshGrid();});
+  bindFilterBtns();
+}
+
+// ─── STORY DETAIL + BOOKING FLOW ─────────────────────────────────────────────
+function pageDetail() {
+  const story = STORIES.find(s=>s.id===bs.storyId);
+  if (!story) return '<div class="p-20 text-center text-gray-400">Story not found.</div>';
+  if (bs.step===4) return successScreen(story);
+
+  const avail = story.slots.filter(s=>s.spots>0);
+  const STEPS = ['Pick a slot','Your details','Confirm'];
+
+  const stepper = bs.step>0 ? `
+  <div class="flex items-center gap-2 mb-10">
+    ${STEPS.map((lbl,i)=>{
+      const done=bs.step>i+1, cur=bs.step===i+1;
+      return `<div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 ${done||cur?'text-purple-700':'text-gray-400'}">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${done?'bg-purple-600 border-purple-600 text-white':cur?'border-purple-600 text-purple-600 bg-purple-50':'border-gray-300 text-gray-400'}">${done?'✓':i+1}</div>
+          <span class="text-sm font-semibold hidden sm:inline">${lbl}</span>
+        </div>${i<2?'<span class="text-gray-300 mx-1">›</span>':''}
+      </div>`;
+    }).join('')}
+  </div>` : '';
+
+  let content = '';
+
+  if (bs.step===0) {
+    const inc = [...story.highlights,'Certificate of participation','Digital photo of your child','Recommended book list'];
+    content = `
+    <div class="grid md:grid-cols-5 gap-8 a-slide">
+      <div class="md:col-span-3">
+        <div class="inline-flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-full mb-5 ${story.badge}">${story.languageLabel}</div>
+        <h1 class="font-display text-4xl md:text-5xl text-gray-800 mb-1">${esc(story.title)}</h1>
+        ${story.titleZh?`<p class="text-xl text-gray-500 mb-5">${story.titleZh}</p>`:''}
+        <div class="flex flex-wrap gap-4 text-sm text-gray-500 font-medium mb-7">
+          <span>⏱ ${story.duration} minutes</span><span>👶 Ages ${story.ageRange}</span><span>⭐ 4.9 (48 reviews)</span>
+        </div>
+        <p class="text-gray-600 leading-relaxed text-base mb-8">${esc(story.description)}</p>
+        <h3 class="font-display text-xl text-gray-800 mb-4">What's included</h3>
+        <ul class="space-y-2.5 mb-8">
+          ${inc.map(h=>`<li class="flex items-center gap-2.5 text-gray-600 text-sm"><div class="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0"><span class="text-green-600 text-xs">✓</span></div>${h}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="md:col-span-2">
+        <div class="${story.bg} border ${story.border} rounded-3xl p-7 md:sticky md:top-24">
+          <div class="text-6xl mb-5 text-center">${story.emoji}</div>
+          <div class="text-center mb-6"><div class="font-display text-4xl text-gray-800">S$${story.price}</div><div class="text-sm text-gray-500">per child</div></div>
+          <div class="space-y-3 text-sm text-gray-600 mb-6">
+            <div class="flex justify-between"><span>Duration</span><span class="font-semibold">${story.duration} min</span></div>
+            <div class="flex justify-between"><span>Language</span><span class="font-semibold">${story.languageLabel}</span></div>
+            <div class="flex justify-between"><span>Age group</span><span class="font-semibold">${story.ageRange} years</span></div>
+            <div class="flex justify-between"><span>Available slots</span><span class="font-semibold ${avail.length>0?'text-green-600':'text-red-500'}">${avail.length} slots</span></div>
+          </div>
+          <button onclick="goStep(1)" ${avail.length===0?'disabled':''} class="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3.5 rounded-2xl shadow hover:shadow-lg hover:-translate-y-0.5 transition-all ${avail.length===0?'opacity-50 cursor-not-allowed':''}">
+            ${avail.length>0?'Book This Story':'Fully Booked'}
+          </button>
+          <p class="text-xs text-gray-400 text-center mt-3">Free cancellation up to 24 hours before</p>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  else if (bs.step===1) {
+    content = `
+    <div class="a-slide">
+      <h2 class="font-display text-3xl text-gray-800 mb-2">Choose a Date & Time</h2>
+      <p class="text-gray-500 mb-8">All times are Singapore Standard Time (GMT+8)</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="slot-grid">${slotsHTML(avail)}</div>
+      <div class="mt-8 flex justify-end">
+        <button id="cont-btn" onclick="goStep(2)" ${!bs.slot?'disabled':''} class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow hover:shadow-lg hover:-translate-y-0.5 transition-all ${!bs.slot?'opacity-40 cursor-not-allowed':''}">Continue ›</button>
+      </div>
+    </div>`;
+  }
+
+  else if (bs.step===2) {
+    const f=bs.form, e=bs.errors;
+    const inp = (id,lbl,type,ph,req) => `
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">${lbl}</label>
+      <input id="${id}" type="${type}" value="${esc(f[id.slice(2)]||'')}" placeholder="${ph}" class="w-full px-4 py-2.5 rounded-xl border text-sm ${e[id.slice(2)]?'border-red-300':'border-gray-200'}">
+      ${e[id.slice(2)]?`<p class="text-red-500 text-xs mt-1">${e[id.slice(2)]}</p>`:''}
+    </div>`;
+    content = `
+    <div class="max-w-xl a-slide">
+      <h2 class="font-display text-3xl text-gray-800 mb-2">Tell Us About Your Child</h2>
+      <p class="text-gray-500 mb-8">We'll use this to personalise the experience.</p>
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Parent / Guardian Name *</label>
+          <input id="f-parentName" type="text" value="${esc(f.parentName)}" placeholder="e.g. Sarah Lim" class="w-full px-4 py-2.5 rounded-xl border text-sm ${e.parentName?'border-red-300':'border-gray-200'}">
+          ${e.parentName?`<p class="text-red-500 text-xs mt-1">${e.parentName}</p>`:''}
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Child's Name *</label>
+            <input id="f-childName" type="text" value="${esc(f.childName)}" placeholder="e.g. Emma" class="w-full px-4 py-2.5 rounded-xl border text-sm ${e.childName?'border-red-300':'border-gray-200'}">
+            ${e.childName?`<p class="text-red-500 text-xs mt-1">${e.childName}</p>`:''}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Child's Age *</label>
+            <select id="f-childAge" class="w-full px-4 py-2.5 rounded-xl border text-sm ${e.childAge?'border-red-300':'border-gray-200'}">
+              <option value="">Select age</option>
+              ${Array.from({length:10},(_,i)=>i+2).map(a=>`<option value="${a}" ${f.childAge==a?'selected':''}>${a} years old</option>`).join('')}
+            </select>
+            ${e.childAge?`<p class="text-red-500 text-xs mt-1">${e.childAge}</p>`:''}
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address *</label>
+          <input id="f-email" type="email" value="${esc(f.email)}" placeholder="e.g. sarah@email.com" class="w-full px-4 py-2.5 rounded-xl border text-sm ${e.email?'border-red-300':'border-gray-200'}">
+          ${e.email?`<p class="text-red-500 text-xs mt-1">${e.email}</p>`:''}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number (optional)</label>
+          <input id="f-phone" type="tel" value="${esc(f.phone)}" placeholder="e.g. +65 9123 4567" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Special notes (optional)</label>
+          <textarea id="f-note" rows="3" placeholder="Allergies, special needs, or anything else we should know…" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm resize-none">${esc(f.note)}</textarea>
+        </div>
+      </div>
+      <div class="mt-8 flex justify-end">
+        <button onclick="submitForm()" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold px-8 py-3.5 rounded-2xl shadow hover:shadow-lg hover:-translate-y-0.5 transition-all">Review Booking ›</button>
+      </div>
+    </div>`;
+  }
+
+  else if (bs.step===3 && bs.slot) {
+    const sl=bs.slot, f=bs.form;
+    const rows=[['Date',fmtDate(sl.datetime,{weekday:'long',year:'numeric',month:'long',day:'numeric'})],['Time',fmtTime(sl.datetime)+' SGT'],['Duration',`${story.duration} minutes`],['Child',`${f.childName}, age ${f.childAge}`],['Parent',f.parentName],['Email',f.email],['Total',`S$${story.price}`]];
+    content = `
+    <div class="max-w-xl a-slide">
+      <h2 class="font-display text-3xl text-gray-800 mb-2">Confirm Your Booking</h2>
+      <p class="text-gray-500 mb-8">Please review the details below before confirming.</p>
+      <div class="${story.bg} border ${story.border} rounded-3xl p-6 mb-6">
+        <div class="flex items-start gap-4 mb-5">
+          <div class="text-4xl">${story.emoji}</div>
+          <div><h3 class="font-display text-xl text-gray-800">${esc(story.title)}</h3>${story.titleZh?`<p class="text-sm text-gray-500">${story.titleZh}</p>`:''}</div>
+        </div>
+        <div class="space-y-2.5 text-sm">
+          ${rows.map(([k,v])=>`<div class="flex justify-between"><span class="text-gray-500">${k}</span><span class="font-semibold text-gray-800 text-right max-w-[60%]">${esc(String(v))}</span></div>`).join('')}
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 mb-6">By confirming, you agree to our cancellation policy: free cancellation up to 24 hours before your session. Payment will be collected on arrival.</p>
+      <button onclick="confirmBk()" class="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg">Confirm Booking 🎉</button>
+    </div>`;
+  }
+
+  return `
+  <div class="min-h-screen bg-gray-50">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <button onclick="${bs.step>0?`goStep(${bs.step-1})`:"nav('/stories')"}" class="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-800 font-semibold text-sm mb-8 transition-colors">← ${bs.step>0?'Back':'All Stories'}</button>
+      ${stepper}
+      ${content}
+    </div>
+  </div>`;
+}
+
+function slotsHTML(avail) {
+  return avail.map(sl=>{
+    const d=sl.datetime, sel=bs.slot?.id===sl.id;
+    return `
+    <button onclick="pickSlot('${sl.id}')" class="slot-btn flex items-center gap-4 p-4 rounded-2xl border-2 text-left w-full ${sel?'sel':'border-gray-200 bg-white'}">
+      <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-center flex-shrink-0 ${sel?'bg-purple-600 text-white':'bg-gray-100 text-gray-700'}">
+        <div class="text-xs font-bold leading-none">${fmtDate(d,{month:'short'})}</div>
+        <div class="text-xl font-display leading-none">${d.getDate()}</div>
+      </div>
+      <div class="flex-1">
+        <div class="font-semibold text-gray-800 text-sm">${fmtDate(d,{weekday:'long'})}</div>
+        <div class="text-gray-500 text-sm">📅 ${fmtTime(d)}</div>
+        <div class="text-xs font-semibold mt-1 ${sl.spots<=2?'text-orange-500':'text-green-600'}">${sl.spots} spot${sl.spots!==1?'s':''} left</div>
+      </div>
+      ${sel?'<div class="ml-auto w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs">✓</div>':''}
+    </button>`;
+  }).join('');
+}
+
+function successScreen(story) {
+  const sl=bs.slot, f=bs.form;
+  return `
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-20">
+    <div class="max-w-md w-full text-center a-pop">
+      <div class="text-8xl mb-6 a-wiggle">🎉</div>
+      <h2 class="font-display text-4xl text-gray-800 mb-3">You're booked!</h2>
+      <p class="text-gray-500 text-lg mb-8">A confirmation has been sent to <strong>${esc(f.email)}</strong>. We can't wait to meet ${esc(f.childName)}!</p>
+      <div class="${story.bg} border ${story.border} rounded-3xl p-6 text-left mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-4xl">${story.emoji}</span>
+          <div>
+            <div class="font-display text-xl text-gray-800">${esc(story.title)}</div>
+            <div class="text-sm text-gray-500">${fmtDate(sl.datetime,{weekday:'short',month:'short',day:'numeric'})} · ${fmtTime(sl.datetime)} SGT</div>
+          </div>
+        </div>
+        <div class="text-xs font-bold px-3 py-1.5 rounded-full inline-block ${story.badge}">${story.languageLabel}</div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button onclick="nav('/my-bookings')" class="flex-1 bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl hover:bg-purple-700 transition-colors">View My Bookings</button>
+        <button onclick="nav('/stories')" class="flex-1 bg-white border border-gray-200 text-gray-700 font-bold px-6 py-3 rounded-2xl hover:bg-gray-50 transition-colors">Browse More Stories</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// booking flow handlers
+function goStep(step) {
+  if (bs.step===2) saveFormToState();
+  bs.step=step;
+  document.getElementById('main').innerHTML=pageDetail();
+  window.scrollTo(0,0);
+}
+
+function saveFormToState() {
+  ['parentName','childName','childAge','email','phone','note'].forEach(k=>{
+    const el=document.getElementById('f-'+k); if(el) bs.form[k]=el.value;
+  });
+}
+
+function pickSlot(id) {
+  const story=STORIES.find(s=>s.id===bs.storyId);
+  bs.slot=story.slots.find(s=>s.id===id)||null;
+  const grid=document.getElementById('slot-grid');
+  if(grid) grid.innerHTML=slotsHTML(story.slots.filter(s=>s.spots>0));
+  const btn=document.getElementById('cont-btn');
+  if(btn){ btn.disabled=!bs.slot; btn.className=btn.className.replace('opacity-40 cursor-not-allowed','').trim()+(bs.slot?'':' opacity-40 cursor-not-allowed'); }
+}
+
+function submitForm() {
+  saveFormToState();
+  const f=bs.form, errs={};
+  if(!f.parentName.trim()) errs.parentName='Required';
+  if(!f.childName.trim())  errs.childName='Required';
+  if(!f.email.trim()||!f.email.includes('@')) errs.email='Valid email required';
+  if(!f.childAge) errs.childAge='Required';
+  bs.errors=errs;
+  goStep(Object.keys(errs).length===0 ? 3 : 2);
+}
+
+function confirmBk() {
+  const story=STORIES.find(s=>s.id===bs.storyId);
+  bookings.push({
+    id: Date.now().toString(),
+    story: {id:story.id,title:story.title,titleZh:story.titleZh,emoji:story.emoji,bg:story.bg,border:story.border,badge:story.badge,languageLabel:story.languageLabel,price:story.price,duration:story.duration},
+    slot:  {id:bs.slot.id, datetime:bs.slot.datetime.toISOString(), spots:bs.slot.spots},
+    child: {...bs.form},
+  });
+  saveBk(); updateNav(); bs.step=4;
+  document.getElementById('main').innerHTML=pageDetail();
+  window.scrollTo(0,0);
+}
+
+// ─── MY BOOKINGS PAGE ─────────────────────────────────────────────────────────
+function pageBookings() {
+  if(!bookings.length) return `
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+    <div class="text-center max-w-sm a-fadein">
+      <div class="text-8xl mb-6">📖</div>
+      <h2 class="font-display text-4xl text-gray-800 mb-3">No bookings yet</h2>
+      <p class="text-gray-500 text-lg mb-8">Your story adventures are waiting! Browse our sessions and book your first one.</p>
+      <a href="#/stories" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold px-7 py-3.5 rounded-2xl shadow hover:shadow-lg hover:-translate-y-0.5 transition-all">Browse Stories →</a>
+    </div>
+  </div>`;
+
+  const now=new Date();
+  const upcoming=bookings.filter(b=>new Date(b.slot.datetime)>now);
+  const past=bookings.filter(b=>new Date(b.slot.datetime)<=now);
+
+  const bkCard = (b,isPast) => {
+    const d=new Date(b.slot.datetime), s=b.story, c=b.child;
+    return `
+    <div class="flex flex-col sm:flex-row gap-5 ${s.bg} border ${s.border} rounded-3xl p-5 ${isPast?'opacity-70':''} a-fadein">
+      <div class="flex sm:flex-col items-center gap-4 sm:gap-2 sm:min-w-[80px]">
+        <div class="text-5xl">${s.emoji}</div>
+        <div class="text-center rounded-xl px-3 py-2 ${isPast?'bg-gray-200 text-gray-500':'bg-white/70'}">
+          <div class="text-xs font-bold text-gray-500 uppercase leading-none">${fmtDate(d,{month:'short'})}</div>
+          <div class="font-display text-2xl text-gray-800 leading-none">${d.getDate()}</div>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-4 mb-2">
+          <div><h3 class="font-display text-xl text-gray-800">${esc(s.title)}</h3>${s.titleZh?`<p class="text-sm text-gray-500">${s.titleZh}</p>`:''}</div>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${isPast?'bg-gray-200 text-gray-500':s.badge}">${isPast?'Completed':'Confirmed'}</span>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+          <span>📅 ${fmtDate(d,{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span>
+          <span>⏰ ${fmtTime(d)} SGT</span>
+          <span>📖 ${s.languageLabel}</span>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm">
+          <span class="text-gray-600">Child: <strong>${esc(c.childName)}</strong>, age ${c.childAge}</span>
+          <span class="text-gray-600">Parent: <strong>${esc(c.parentName)}</strong></span>
+        </div>
+      </div>
+      <div class="sm:text-right flex-shrink-0">
+        <div class="font-display text-2xl text-gray-800">S$${s.price}</div>
+        <div class="text-xs text-gray-400">${s.duration} min</div>
+        ${isPast?'<div class="mt-2 inline-flex items-center gap-1 text-xs text-yellow-600 font-semibold bg-yellow-100 px-2.5 py-1 rounded-full">⭐ Leave a review</div>':''}
+      </div>
+    </div>`;
+  };
+
+  return `
+  <div class="min-h-screen bg-gray-50">
+    <div class="bg-gradient-to-br from-purple-600 to-pink-500 py-14">
+      <div class="max-w-5xl mx-auto px-6 text-white">
+        <h1 class="font-display text-5xl mb-2">My Bookings</h1>
+        <p class="text-white/80 text-lg">${bookings.length} session${bookings.length!==1?'s':''} booked · your story adventures</p>
+      </div>
+    </div>
+    <div class="max-w-5xl mx-auto px-6 py-10">
+      <div class="grid sm:grid-cols-3 gap-4 mb-12">
+        ${[['📚','from-purple-500 to-pink-500','Total Bookings',bookings.length],['📅','from-sky-500 to-teal-500','Upcoming',upcoming.length],['⭐','from-orange-400 to-yellow-400','Completed',past.length]]
+          .map(([e,g,l,v])=>`<div class="bg-gradient-to-br ${g} rounded-2xl p-5 text-white a-fadein"><div class="text-3xl mb-2">${e}</div><div class="font-display text-4xl">${v}</div><div class="text-white/80 text-sm font-medium">${l}</div></div>`).join('')}
+      </div>
+      ${upcoming.length?`<section class="mb-12"><h2 class="font-display text-2xl text-gray-800 mb-5">📅 Upcoming Sessions</h2><div class="space-y-4">${upcoming.map(b=>bkCard(b,false)).join('')}</div></section>`:''}
+      ${past.length?`<section class="mb-12"><h2 class="font-display text-2xl text-gray-800 mb-5">✅ Past Sessions</h2><div class="space-y-4">${past.map(b=>bkCard(b,true)).join('')}</div></section>`:''}
+      <div class="mt-4 bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-8 text-white text-center">
+        <div class="text-5xl mb-4">🌟</div>
+        <h3 class="font-display text-3xl mb-2">Ready for Another Adventure?</h3>
+        <p class="text-white/80 mb-6">Browse our full story collection and book your next session.</p>
+        <a href="#/stories" class="inline-flex items-center gap-2 bg-white text-purple-700 font-bold px-7 py-3 rounded-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all">Explore Stories →</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
