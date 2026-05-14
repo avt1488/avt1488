@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NamedTales – Personalised Storybooks for Children</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka One', 'cursive'],
+            body: ['Nunito', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+    .story-card { transition: all 0.2s ease; }
+    .story-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+    .story-card.selected { ring: 3px; }
+    .highlight-name { background: linear-gradient(120deg, #fde68a 0%, #fcd34d 100%); border-radius: 4px; padding: 0 3px; font-weight: 800; color: #7c3aed; }
+    .preview-page { background: linear-gradient(135deg, #fefce8 0%, #fff7ed 100%); border: 1px solid #fde68a; }
+    .book-spine { background: linear-gradient(to bottom, #7c3aed, #a855f7); }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(8deg)} 75%{transform:rotate(-8deg)} }
+    .float { animation: float 4s ease-in-out infinite; }
+    .wiggle { animation: wiggle 2.5s ease-in-out infinite; }
+    .gradient-text { background: linear-gradient(135deg, #7c3aed, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .step-line::after { content: ''; position: absolute; top: 22px; left: 50%; width: 100%; height: 2px; background: linear-gradient(to right, #e9d5ff, #fce7f3); z-index: 0; }
+    .step-line:last-child::after { display: none; }
+    input:focus, select:focus, textarea:focus { outline: none; }
+    .format-card { cursor: pointer; transition: all 0.2s; }
+    .format-card:hover { transform: translateY(-2px); }
+    .format-card.chosen { border-color: #7c3aed; background: #f5f3ff; box-shadow: 0 0 0 3px #ddd6fe; }
+    .shimmer { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .tag-new { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body class="bg-stone-50 text-gray-800">
+
+<!-- ─── NAV ─── -->
+<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-violet-100 shadow-sm">
+  <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2 group">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform text-lg">📖</div>
+      <span class="font-display text-xl text-violet-700 leading-none">Named<span class="text-pink-500">Tales</span></span>
+    </a>
+    <div class="flex items-center gap-1 sm:gap-2">
+      <a href="#how-it-works" class="hidden sm:block text-sm font-semibold text-gray-500 hover:text-violet-700 px-3 py-2 rounded-xl hover:bg-violet-50 transition-all">How it works</a>
+      <a href="#stories" class="hidden sm:block text-sm font-semibold text-gray-500 hover:text-violet-700 px-3 py-2 rounded-xl hover:bg-violet-50 transition-all">Stories</a>
+      <a href="#personalise" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold px-4 py-2 rounded-xl text-sm shadow hover:shadow-md hover:-translate-y-0.5 transition-all">
+        ✨ Personalise Now
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-500 to-pink-500 min-h-[85vh] flex items-center">
+  <!-- blobs -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
+    <div class="absolute -bottom-20 -right-20 w-[30rem] h-[30rem] rounded-full bg-white/10 blur-3xl"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-pink-500/20 blur-3xl"></div>
+  </div>
+  <!-- floating emojis -->
+  <div class="float absolute top-16 right-[10%] text-6xl select-none" style="animation-delay:0s">⭐</div>
+  <div class="float absolute top-32 left-[8%] text-5xl select-none" style="animation-delay:1.2s">🐉</div>
+  <div class="float absolute bottom-20 left-[14%] text-5xl select-none" style="animation-delay:0.6s">🚀</div>
+  <div class="float absolute bottom-28 right-[16%] text-4xl select-none hidden md:block" style="animation-delay:1.8s">🦁</div>
+  <div class="float absolute top-24 left-[40%] text-3xl select-none hidden lg:block" style="animation-delay:2.4s">🌈</div>
+
+  <div class="relative max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-14 items-center w-full">
+    <div class="text-white">
+      <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-bold mb-6">
+        🎁 Perfect for birthdays, Christmas &amp; gifts
+      </div>
+      <h1 class="font-display text-5xl md:text-6xl lg:text-7xl leading-tight mb-5">
+        Put <span class="text-yellow-300">Your Child</span><br/>in the Story
+      </h1>
+      <p class="text-white/90 text-lg md:text-xl leading-relaxed mb-8 max-w-lg">
+        Every NamedTales book is the <strong>same beloved story</strong> — except the hero carries <em>your child's own name</em> on every page. Watch their eyes light up when they meet themselves in a tale.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="#personalise" class="inline-flex items-center gap-2 bg-white text-violet-700 font-bold px-7 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-base">
+          ✨ Create Your Book
+        </a>
+        <a href="#how-it-works" class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-bold px-7 py-3.5 rounded-2xl border border-white/40 hover:bg-white/30 transition-all text-base">
+          See How It Works
+        </a>
+      </div>
+      <div class="flex items-center gap-6 mt-8 text-white/80 text-sm font-semibold">
+        <div class="flex items-center gap-1.5">⚡ Instant digital download</div>
+        <div class="flex items-center gap-1.5">🚚 Printed &amp; shipped in 5 days</div>
+      </div>
+    </div>
+
+    <!-- book mockup -->
+    <div class="hidden md:flex justify-center items-center">
+      <div class="relative">
+        <!-- shadow -->
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-8 bg-black/20 blur-xl rounded-full"></div>
+        <!-- book -->
+        <div class="relative w-52 bg-white rounded-r-2xl rounded-l-sm shadow-2xl overflow-hidden" style="height:270px">
+          <div class="book-spine absolute left-0 top-0 bottom-0 w-5"></div>
+          <div class="ml-5 p-5 h-full flex flex-col">
+            <div class="text-5xl mb-3">🐉</div>
+            <div class="font-display text-gray-800 text-lg leading-tight mb-1">The Dragon's Secret</div>
+            <div class="text-xs text-gray-500 mb-3">A story written for</div>
+            <div class="font-display text-2xl text-violet-600 bg-yellow-100 rounded-xl px-3 py-2 text-center" id="heroBookName">Emma</div>
+            <div class="mt-auto text-xs text-gray-400 text-center">NamedTales</div>
+          </div>
+        </div>
+        <!-- floating badge -->
+        <div class="absolute -top-4 -right-6 bg-yellow-400 text-yellow-900 font-display text-sm px-3 py-1.5 rounded-xl shadow-lg wiggle">
+          It's ME! 🎉
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TRUST BAR ─── -->
+<div class="bg-white border-b border-gray-100 py-5">
+  <div class="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-6 md:gap-12 text-sm font-semibold text-gray-500">
+    <div class="flex items-center gap-2">⭐⭐⭐⭐⭐ <span class="text-gray-700">4.9 · 2,400+ reviews</span></div>
+    <div class="flex items-center gap-2">📚 <span>6 story titles available</span></div>
+    <div class="flex items-center gap-2">🎁 <span>Loved by 8,000+ families</span></div>
+    <div class="flex items-center gap-2">🖨️ <span>Premium hardcover print</span></div>
+    <div class="flex items-center gap-2">⚡ <span>Instant PDF download</span></div>
+  </div>
+</div>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section id="how-it-works" class="py-20 bg-white">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <h2 class="font-display text-4xl text-gray-800 mb-3">How It Works</h2>
+      <p class="text-gray-500 text-lg">Three steps to a book they'll treasure forever</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8 relative">
+      <!-- connecting line on desktop -->
+      <div class="hidden md:block absolute top-11 left-1/6 right-1/6 h-0.5 bg-gradient-to-r from-violet-200 via-pink-200 to-amber-200" style="left:18%;right:18%"></div>
+
+      <div class="relative text-center bg-violet-50 rounded-3xl p-8 border border-violet-100">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-2xl mx-auto mb-5 shadow-md relative z-10">📖</div>
+        <div class="font-display text-5xl text-violet-100 absolute top-5 right-6 select-none">01</div>
+        <h3 class="font-display text-xl text-gray-800 mb-2">Pick a Story</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Choose from 6 beautifully illustrated adventures — fantasy, space, ocean, safari and more.</p>
+      </div>
+
+      <div class="relative text-center bg-pink-50 rounded-3xl p-8 border border-pink-100">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-2xl mx-auto mb-5 shadow-md relative z-10">✏️</div>
+        <div class="font-display text-5xl text-pink-100 absolute top-5 right-6 select-none">02</div>
+        <h3 class="font-display text-xl text-gray-800 mb-2">Add Their Name</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Enter the child's name and see it appear live in the story preview — exactly as it will look in the book.</p>
+      </div>
+
+      <div class="relative text-center bg-amber-50 rounded-3xl p-8 border border-amber-100">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-2xl mx-auto mb-5 shadow-md relative z-10">🎁</div>
+        <div class="font-display text-5xl text-amber-100 absolute top-5 right-6 select-none">03</div>
+        <h3 class="font-display text-xl text-gray-800 mb-2">Order &amp; Cherish</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Download a PDF instantly or receive a stunning printed hardcover, ready to gift-wrap and treasure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── MAIN PERSONALISER ─── -->
+<section id="personalise" class="py-20 bg-gradient-to-b from-violet-50 to-stone-50">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 bg-violet-100 text-violet-700 rounded-full px-4 py-1.5 text-sm font-bold mb-4">✨ Interactive Preview</div>
+      <h2 class="font-display text-4xl md:text-5xl text-gray-800 mb-3">Create Your Personalised Book</h2>
+      <p class="text-gray-500 text-lg max-w-xl mx-auto">Choose a story, type a name, and watch the magic happen in real-time.</p>
+    </div>
+
+    <!-- STEP 1: Story Picker -->
+    <div id="stories" class="mb-10">
+      <h3 class="font-display text-2xl text-gray-700 mb-6 flex items-center gap-2">
+        <span class="w-8 h-8 rounded-full bg-violet-600 text-white font-bold text-sm flex items-center justify-center">1</span>
+        Choose a Story
+      </h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" id="storyGrid">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <!-- STEP 2 + 3: Form + Preview -->
+    <div class="grid lg:grid-cols-2 gap-8">
+
+      <!-- LEFT: Personalise Form -->
+      <div class="bg-white rounded-3xl border border-violet-100 shadow-sm p-7">
+        <h3 class="font-display text-2xl text-gray-700 mb-6 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-pink-500 text-white font-bold text-sm flex items-center justify-center">2</span>
+          Personalise It
+        </h3>
+
+        <!-- Child name -->
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Child's Name <span class="text-violet-500">*</span></label>
+          <input
+            id="childName"
+            type="text"
+            maxlength="20"
+            placeholder="e.g. Emma, Lucas, Priya…"
+            oninput="updatePreview()"
+            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-100 text-base font-semibold transition-all"
+          />
+          <p class="text-xs text-gray-400 mt-1.5">This name appears on the cover and throughout every page.</p>
+        </div>
+
+        <!-- Pronouns -->
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Pronouns</label>
+          <div class="flex gap-3">
+            <label class="flex-1">
+              <input type="radio" name="pronoun" value="she" onchange="updatePreview()" class="sr-only peer" />
+              <div class="text-center py-2.5 rounded-xl border-2 border-gray-200 peer-checked:border-violet-500 peer-checked:bg-violet-50 text-sm font-bold text-gray-600 peer-checked:text-violet-700 cursor-pointer transition-all hover:border-violet-300">
+                She / Her
+              </div>
+            </label>
+            <label class="flex-1">
+              <input type="radio" name="pronoun" value="he" onchange="updatePreview()" class="sr-only peer" checked />
+              <div class="text-center py-2.5 rounded-xl border-2 border-gray-200 peer-checked:border-violet-500 peer-checked:bg-violet-50 text-sm font-bold text-gray-600 peer-checked:text-violet-700 cursor-pointer transition-all hover:border-violet-300">
+                He / Him
+              </div>
+            </label>
+            <label class="flex-1">
+              <input type="radio" name="pronoun" value="they" onchange="updatePreview()" class="sr-only peer" />
+              <div class="text-center py-2.5 rounded-xl border-2 border-gray-200 peer-checked:border-violet-500 peer-checked:bg-violet-50 text-sm font-bold text-gray-600 peer-checked:text-violet-700 cursor-pointer transition-all hover:border-violet-300">
+                They / Them
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Age range -->
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-gray-700 mb-2">Child's Age</label>
+          <select id="childAge" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-100 text-sm font-semibold bg-white transition-all">
+            <option value="">Select age</option>
+            <option value="2">2 years old</option>
+            <option value="3">3 years old</option>
+            <option value="4">4 years old</option>
+            <option value="5">5 years old</option>
+            <option value="6">6 years old</option>
+            <option value="7">7 years old</option>
+            <option value="8">8 years old</option>
+            <option value="9">9 years old</option>
+            <option value="10">10 years old</option>
+          </select>
+        </div>
+
+        <!-- For my child / gift toggle -->
+        <div class="mb-5">
+          <label class="block text-sm font-bold text-gray-700 mb-2">This book is…</label>
+          <div class="flex gap-3">
+            <label class="flex-1">
+              <input type="radio" name="recipient" value="self" onchange="toggleGiftFields()" class="sr-only peer" checked />
+              <div class="text-center py-2.5 rounded-xl border-2 border-gray-200 peer-checked:border-pink-500 peer-checked:bg-pink-50 text-sm font-bold text-gray-600 peer-checked:text-pink-700 cursor-pointer transition-all hover:border-pink-300">
+                👨‍👩‍👧 For My Child
+              </div>
+            </label>
+            <label class="flex-1">
+              <input type="radio" name="recipient" value="gift" onchange="toggleGiftFields()" class="sr-only peer" />
+              <div class="text-center py-2.5 rounded-xl border-2 border-gray-200 peer-checked:border-pink-500 peer-checked:bg-pink-50 text-sm font-bold text-gray-600 peer-checked:text-pink-700 cursor-pointer transition-all hover:border-pink-300">
+                🎁 A Gift
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Gift fields (hidden by default) -->
+        <div id="giftFields" class="hidden space-y-4 mb-5 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+          <div class="flex items-center gap-2 text-amber-700 font-bold text-sm mb-3">🎁 Gift Details</div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1.5">Your Name (the gift giver)</label>
+            <input type="text" id="giftFrom" placeholder="e.g. Grandma, Uncle Sam…" class="w-full px-3 py-2.5 rounded-xl border-2 border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-sm transition-all" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1.5">Gift Message (printed inside the cover)</label>
+            <textarea id="giftMessage" placeholder="e.g. Happy Birthday! I hope this story brings you as much joy as you bring me. With all my love…" rows="3" class="w-full px-3 py-2.5 rounded-xl border-2 border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-sm resize-none transition-all"></textarea>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="giftWrap" class="w-4 h-4 rounded accent-amber-500" />
+            <span class="text-sm text-gray-600 font-semibold">Add gift wrapping <span class="text-amber-600">(+£4.99)</span></span>
+          </label>
+        </div>
+
+        <!-- Format selector -->
+        <div class="mb-6">
+          <label class="block text-sm font-bold text-gray-700 mb-3">Choose Your Format</label>
+          <div class="space-y-3">
+            <div class="format-card rounded-2xl border-2 border-gray-200 p-4 flex items-center gap-4" onclick="selectFormat(this,'digital')" data-format="digital">
+              <div class="w-11 h-11 rounded-xl bg-sky-100 flex items-center justify-center text-xl flex-shrink-0">⚡</div>
+              <div class="flex-1">
+                <div class="font-bold text-gray-800 text-sm">Digital PDF</div>
+                <div class="text-xs text-gray-500">Download instantly · Unlimited reprints</div>
+              </div>
+              <div class="font-display text-xl text-violet-700 flex-shrink-0">£12.99</div>
+            </div>
+            <div class="format-card chosen rounded-2xl border-2 border-violet-500 bg-violet-50 p-4 flex items-center gap-4" onclick="selectFormat(this,'print')" data-format="print">
+              <div class="w-11 h-11 rounded-xl bg-violet-100 flex items-center justify-center text-xl flex-shrink-0">📗</div>
+              <div class="flex-1">
+                <div class="font-bold text-gray-800 text-sm flex items-center gap-2">Printed Hardcover <span class="tag-new">Popular</span></div>
+                <div class="text-xs text-gray-500">Premium quality · Ships in 5–7 days</div>
+              </div>
+              <div class="font-display text-xl text-violet-700 flex-shrink-0">£28.99</div>
+            </div>
+            <div class="format-card rounded-2xl border-2 border-gray-200 p-4 flex items-center gap-4" onclick="selectFormat(this,'bundle')" data-format="bundle">
+              <div class="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center text-xl flex-shrink-0">🎀</div>
+              <div class="flex-1">
+                <div class="font-bold text-gray-800 text-sm flex items-center gap-2">Print + Digital Bundle <span class="tag-new" style="background:linear-gradient(135deg,#10b981,#059669)">Best Value</span></div>
+                <div class="text-xs text-gray-500">Hardcover + instant PDF download</div>
+              </div>
+              <div class="font-display text-xl text-violet-700 flex-shrink-0">£36.99</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <button onclick="handleOrder()" class="w-full bg-gradient-to-r from-violet-600 to-pink-500 text-white font-display text-lg py-4 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+          🎉 Order My Book Now
+        </button>
+        <p class="text-xs text-gray-400 text-center mt-3">Secure checkout · Free returns · Loved or refunded</p>
+      </div>
+
+      <!-- RIGHT: Live Preview -->
+      <div>
+        <h3 class="font-display text-2xl text-gray-700 mb-6 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-amber-400 text-white font-bold text-sm flex items-center justify-center">3</span>
+          Live Story Preview
+        </h3>
+
+        <!-- Preview panel -->
+        <div class="preview-page rounded-3xl p-6 md:p-8 shadow-inner min-h-64 relative" id="previewPanel">
+          <!-- Story title bar -->
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-amber-200">
+            <div class="text-4xl" id="previewEmoji">🐉</div>
+            <div>
+              <div class="font-display text-xl text-gray-800" id="previewTitle">The Dragon's Secret</div>
+              <div class="text-xs text-gray-400 font-semibold mt-0.5">NamedTales Preview · First 4 Paragraphs</div>
+            </div>
+          </div>
+
+          <!-- Story text -->
+          <div id="previewText" class="space-y-4 text-gray-700 leading-relaxed text-[15px]">
+            <!-- rendered by JS -->
+          </div>
+
+          <!-- Page turn hint -->
+          <div class="mt-8 pt-5 border-t border-amber-200 flex items-center justify-between text-xs text-gray-400 font-semibold">
+            <span>Page 1 of 32</span>
+            <span>The full book contains 32 beautifully illustrated pages</span>
+          </div>
+
+          <!-- Watermark -->
+          <div class="absolute bottom-16 right-6 text-xs text-amber-200 font-display select-none pointer-events-none rotate-[-8deg]">PREVIEW</div>
+        </div>
+
+        <!-- Tip box -->
+        <div class="mt-4 bg-white rounded-2xl border border-violet-100 p-4 flex items-start gap-3 shadow-sm">
+          <div class="text-2xl flex-shrink-0">💡</div>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            <strong class="text-violet-700">Tip:</strong> Type the child's name in the form to see it highlighted <span class="highlight-name">like this</span> throughout the story. Every single page says their name!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SAMPLE PAGES SHOWCASE ─── -->
+<section class="py-20 bg-white">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <h2 class="font-display text-4xl text-gray-800 mb-3">Inside Every Book</h2>
+      <p class="text-gray-500 text-lg">Professional illustrations · Hardcover quality · Name on every spread</p>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-6">
+      <div class="rounded-3xl bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 p-6 text-center hover:shadow-lg transition-shadow">
+        <div class="text-5xl mb-4">🖼️</div>
+        <h3 class="font-display text-lg text-gray-800 mb-2">Full-Page Illustrations</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Vivid, hand-drawn artwork on every page brings the adventure to life.</p>
+      </div>
+      <div class="rounded-3xl bg-gradient-to-br from-pink-50 to-rose-100 border border-pink-200 p-6 text-center hover:shadow-lg transition-shadow">
+        <div class="text-5xl mb-4">✍️</div>
+        <h3 class="font-display text-lg text-gray-800 mb-2">Name on Every Page</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">The child's name weaves naturally into every paragraph — not just the cover.</p>
+      </div>
+      <div class="rounded-3xl bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 p-6 text-center hover:shadow-lg transition-shadow">
+        <div class="text-5xl mb-4">🎨</div>
+        <h3 class="font-display text-lg text-gray-800 mb-2">Dedicated Gift Page</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">Your personalised message is printed beautifully inside the front cover.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ─── -->
+<section class="py-20 bg-stone-50">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <h2 class="font-display text-4xl text-gray-800 mb-3">Families Love It</h2>
+      <p class="text-gray-500 text-lg">Over 8,000 personalised books delivered and counting</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex gap-1 mb-4">⭐⭐⭐⭐⭐</div>
+        <p class="text-gray-600 text-sm leading-relaxed mb-5">"My daughter Sophie couldn't believe her name was in the book! She made me read it four times before bed. I've already ordered a second one as a gift."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm">R</div>
+          <div>
+            <div class="font-bold text-gray-800 text-sm">Rachel Kim</div>
+            <div class="text-xs text-gray-400">Mum of Sophie, age 5</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex gap-1 mb-4">⭐⭐⭐⭐⭐</div>
+        <p class="text-gray-600 text-sm leading-relaxed mb-5">"Bought this as a birthday gift for my nephew Theo. His parents sent me a video of him absolutely losing his mind when he saw his name inside. Best £30 I've ever spent."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">M</div>
+          <div>
+            <div class="font-bold text-gray-800 text-sm">Marcus Brown</div>
+            <div class="text-xs text-gray-400">Uncle to Theo, age 6</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex gap-1 mb-4">⭐⭐⭐⭐⭐</div>
+        <p class="text-gray-600 text-sm leading-relaxed mb-5">"We have three kids and I bought a book for each of them — Aiden, Isla, and little Jax. The print quality is outstanding. These are heirloom-quality keepsakes."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center text-white font-bold text-sm">P</div>
+          <div>
+            <div class="font-bold text-gray-800 text-sm">Priya Nair</div>
+            <div class="text-xs text-gray-400">Mum of three</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section class="py-20 bg-white">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <h2 class="font-display text-4xl text-gray-800 mb-3">Questions? Answered.</h2>
+    </div>
+    <div class="space-y-4" id="faqList">
+      <!-- injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA BANNER ─── -->
+<section class="py-16 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500">
+  <div class="max-w-3xl mx-auto px-6 text-center">
+    <div class="text-6xl mb-5 float inline-block">🎉</div>
+    <h2 class="font-display text-4xl text-white mb-4">Every Child Deserves Their Own Story</h2>
+    <p class="text-white/85 text-lg mb-8">Create a book they'll reach for again and again — because the hero is always, always them.</p>
+    <a href="#personalise" class="inline-flex items-center gap-2 bg-white text-violet-700 font-display text-lg px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+      ✨ Start Personalising Free
+    </a>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer class="bg-gray-900 text-gray-400 py-12 text-center text-sm">
+  <div class="font-display text-2xl text-white mb-2">Named<span class="text-pink-400">Tales</span></div>
+  <p class="mb-1">Personalised storybooks for the children you love most</p>
+  <p class="text-gray-600 mb-6">© 2026 NamedTales · hello@namedtales.com · UK &amp; Worldwide Shipping</p>
+  <div class="flex flex-wrap justify-center gap-6 text-xs text-gray-500">
+    <a href="#" class="hover:text-white transition-colors">About Us</a>
+    <a href="#" class="hover:text-white transition-colors">All Stories</a>
+    <a href="#" class="hover:text-white transition-colors">Shipping &amp; Returns</a>
+    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+    <a href="#" class="hover:text-white transition-colors">Contact</a>
+  </div>
+</footer>
+
+<!-- ─── ORDER MODAL ─── -->
+<div id="orderModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center animate-bounce-once">
+    <div class="text-7xl mb-5">🎉</div>
+    <h2 class="font-display text-3xl text-gray-800 mb-3">Order Placed!</h2>
+    <p class="text-gray-500 mb-6 leading-relaxed" id="modalMsg">Your personalised book is on its way. We'll send a confirmation email shortly.</p>
+    <button onclick="document.getElementById('orderModal').classList.add('hidden')" class="w-full bg-gradient-to-r from-violet-600 to-pink-500 text-white font-bold py-3.5 rounded-2xl hover:opacity-90 transition-opacity">
+      Wonderful! 🌟
+    </button>
+  </div>
+</div>
+
+<!-- ─── JAVASCRIPT ─── -->
+<script>
+  // ── Story Data ─────────────────────────────────────────────
+  const STORIES = [
+    {
+      id: 1,
+      title: "The Dragon's Secret",
+      emoji: "🐉",
+      ageRange: "4–8",
+      pages: 32,
+      color: "from-rose-400 to-orange-400",
+      bg: "bg-rose-50",
+      border: "border-rose-200",
+      description: "A tiny dragon, a secret garden, and one brave child who discovers that friendship is the greatest magic of all.",
+      narrative: [
+        "One sunny morning, {NAME} was exploring the old garden when {he_she} spotted something quite extraordinary — a tiny, shimmering dragon, no bigger than a kitten, curled up between the rose bushes.",
+        "{He_She} knelt down slowly, heart thumping with wonder. The dragon opened one golden eye and blinked at {NAME} as if it had been waiting all morning for exactly this moment.",
+        '"Hello," whispered {NAME}. "I won\'t hurt you, I promise." The dragon yawned, showing tiny sparkling teeth, and — to {his_her} absolute delight — let out the smallest, most perfect puff of rainbow-coloured smoke.',
+        "That was the beginning of the most magical summer {NAME} had ever known. They spent every golden afternoon in the garden together, and {he_she} soon understood something wonderful: some secrets are far too special to keep to yourself forever."
+      ]
+    },
+    {
+      id: 2,
+      title: "Journey to the Stars",
+      emoji: "🚀",
+      ageRange: "4–9",
+      pages: 36,
+      color: "from-indigo-400 to-violet-500",
+      bg: "bg-indigo-50",
+      border: "border-indigo-200",
+      description: "When a glowing spacecraft lands in the back garden, one curious child becomes the universe's most important explorer.",
+      narrative: [
+        "Every single night, {NAME} pressed {his_her} nose against the bedroom window and gazed up at the stars, wondering what lay beyond the very last one.",
+        "Then one Thursday — just after supper — a soft blue light filled the back garden, and {NAME} crept outside to find a small silver spacecraft resting on the grass, humming gently like a sleeping cat.",
+        "A hatch slid open, and a friendly voice floated out: \"We've searched the whole galaxy,\" it said. \"And {NAME} is the navigator we've been looking for.\"",
+        "{He_She} climbed aboard without a single hesitation, because {he_she} had always known — deep in {his_her} heart — that the stars were waiting just for {NAME}."
+      ]
+    },
+    {
+      id: 3,
+      title: "The Ocean Explorer",
+      emoji: "🌊",
+      ageRange: "3–7",
+      pages: 28,
+      color: "from-cyan-400 to-teal-500",
+      bg: "bg-cyan-50",
+      border: "border-cyan-200",
+      description: "A magical golden shell grants one special child the power to breathe underwater and befriend the creatures of the deep.",
+      narrative: [
+        "The day {NAME} found the golden shell on the beach was the day everything changed. It was warm in {his_her} hand, and it glowed with the soft colour of a sunset trapped inside glass.",
+        "{He_She} held it to {his_her} ear — and instead of the usual whoosh of the sea, a voice whispered back: \"Dive in, {NAME}. The ocean has been waiting for you.\"",
+        "Before {he_she} could think too hard about it, {NAME} waded in, and something marvellous happened — {he_she} could breathe. Below the waves, a whole sparkling world opened up around {him_her}.",
+        "A seahorse bowed its tiny head. A turtle waved a flipper. And every creature {NAME} passed seemed to say without words: \"Welcome. You are exactly who we hoped would come.\""
+      ]
+    },
+    {
+      id: 4,
+      title: "The Brave Safari",
+      emoji: "🦁",
+      ageRange: "3–7",
+      pages: 30,
+      color: "from-amber-400 to-yellow-400",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+      description: "On the plains of Africa, a young lion cub picks one extraordinary child as its very first and most trusted friend.",
+      narrative: [
+        "{NAME} stepped off the jeep and breathed in the warm, golden air of the savannah. The grass stretched to the horizon, and somewhere far away, a bird called out as if announcing {his_her} arrival.",
+        "The other visitors crowded around the binoculars — but a small lion cub walked straight past all of them and stopped right in front of {NAME}, blinking its big amber eyes.",
+        "The ranger whispered that he had never seen the cub approach anyone before. But {NAME} simply crouched down and held out {his_her} hand, and the cub pressed its soft nose gently against {his_her} palm.",
+        "From that moment on, wherever {NAME} walked across the plains that day, {he_she} walked with a lion beside {him_her} — and every creature they passed seemed to make way."
+      ]
+    },
+    {
+      id: 5,
+      title: "The Magic Academy",
+      emoji: "🧙",
+      ageRange: "5–10",
+      pages: 40,
+      color: "from-emerald-400 to-teal-500",
+      bg: "bg-emerald-50",
+      border: "border-emerald-200",
+      description: "A silver-starred letter arrives for one very special child — an invitation to the world's most extraordinary school of magic.",
+      narrative: [
+        "The letter arrived on {NAME}'s birthday. It was sealed with a silver star and addressed in ink that seemed to shimmer between gold and blue depending on how the light caught it.",
+        "Inside, in curling script, it read: \"Dear {NAME}, you have been selected for enrolment at the Whitmore Academy of Magic. Your particular gift has been observed for some time, and we believe you are ready.\"",
+        "The moment {NAME} stepped through the Academy's towering oak doors, something happened that made every professor stop and stare — the enchanted candles along the corridor lit up all at once, without anyone casting a single spell.",
+        "\"Well,\" said the Headmistress, raising an eyebrow and smiling, \"it appears {NAME} has already introduced {himself_herself} to the building. How very promising indeed.\""
+      ]
+    },
+    {
+      id: 6,
+      title: "The Rainbow Kingdom",
+      emoji: "🦄",
+      ageRange: "3–7",
+      pages: 32,
+      color: "from-pink-400 to-fuchsia-500",
+      bg: "bg-pink-50",
+      border: "border-pink-200",
+      description: "Behind a secret door in an old oak tree, a magical kingdom of unicorns has been waiting for the one chosen child to arrive.",
+      narrative: [
+        "Deep in the park, half-hidden behind the oldest oak tree, {NAME} found a door no bigger than a letterbox — painted in all seven colours of the rainbow and fitted with a tiny brass handle.",
+        "{He_She} turned the handle, and the door swung open onto a world that made {NAME} gasp: rolling meadows of silver grass, a sky full of drifting stars even in daytime, and in the distance, a herd of unicorns.",
+        "The largest unicorn turned, cantered over, and lowered its magnificent head until its spiralled horn nearly touched {NAME}'s forehead. \"We've kept this kingdom safe,\" it said, \"waiting for the child who could find the door. Welcome, {NAME}.\"",
+        "{He_She} reached up and placed {his_her} hand on the unicorn's mane — and a warm golden light spread from {NAME}'s fingertips across the whole kingdom, and every unicorn in the meadow lifted its head and sang."
+      ]
+    }
+  ];
+
+  // ── Pronoun helpers ─────────────────────────────────────────
+  function getPronouns() {
+    const val = document.querySelector('input[name="pronoun"]:checked')?.value || 'he';
+    return {
+      he_she:        val === 'he' ? 'he'    : val === 'she' ? 'she'   : 'they',
+      him_her:       val === 'he' ? 'him'   : val === 'she' ? 'her'   : 'them',
+      his_her:       val === 'he' ? 'his'   : val === 'she' ? 'her'   : 'their',
+      He_She:        val === 'he' ? 'He'    : val === 'she' ? 'She'   : 'They',
+      Him_Her:       val === 'he' ? 'Him'   : val === 'she' ? 'Her'   : 'Them',
+      His_Her:       val === 'he' ? 'His'   : val === 'she' ? 'Her'   : 'Their',
+      himself_herself: val === 'he' ? 'himself' : val === 'she' ? 'herself' : 'themself',
+    };
+  }
+
+  function personalise(text, name) {
+    const p = getPronouns();
+    const displayName = name
+      ? `<span class="highlight-name">${name}</span>`
+      : '<span class="highlight-name text-gray-400 italic">your child</span>';
+    return text
+      .replace(/{NAME}/g, displayName)
+      .replace(/{he_she}/g, p.he_she)
+      .replace(/{him_her}/g, p.him_her)
+      .replace(/{his_her}/g, p.his_her)
+      .replace(/{He_She}/g, p.He_She)
+      .replace(/{Him_Her}/g, p.Him_Her)
+      .replace(/{His_Her}/g, p.His_Her)
+      .replace(/{himself_herself}/g, p.himself_herself);
+  }
+
+  // ── State ──────────────────────────────────────────────────
+  let selectedStoryId = 1;
+  let selectedFormat = 'print';
+
+  // ── Render story grid ──────────────────────────────────────
+  function renderStoryGrid() {
+    const grid = document.getElementById('storyGrid');
+    grid.innerHTML = STORIES.map(s => `
+      <div
+        class="story-card cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${s.bg} ${s.border} ${s.id === selectedStoryId ? 'ring-4 ring-violet-400 ring-offset-2 scale-[1.03]' : ''}"
+        onclick="selectStory(${s.id})"
+        id="storyCard${s.id}"
+        title="${s.title}"
+      >
+        <div class="text-4xl mb-2">${s.emoji}</div>
+        <div class="font-bold text-gray-700 text-xs leading-tight">${s.title}</div>
+        <div class="text-xs text-gray-400 mt-1">Age ${s.ageRange}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectStory(id) {
+    selectedStoryId = id;
+    renderStoryGrid();
+    updatePreview();
+    // update book cover mockup name
+    document.getElementById('heroBookName').textContent =
+      document.getElementById('childName').value.trim() || 'Emma';
+  }
+
+  // ── Update live preview ────────────────────────────────────
+  function updatePreview() {
+    const story = STORIES.find(s => s.id === selectedStoryId);
+    const name  = document.getElementById('childName').value.trim();
+
+    // update cover mockup
+    document.getElementById('heroBookName').textContent = name || 'Emma';
+
+    // update preview header
+    document.getElementById('previewEmoji').textContent = story.emoji;
+    document.getElementById('previewTitle').textContent = story.title;
+
+    // render paragraphs
+    const html = story.narrative
+      .map(para => `<p class="text-[15px] leading-loose">${personalise(para, name)}</p>`)
+      .join('');
+    document.getElementById('previewText').innerHTML = html;
+  }
+
+  // ── Gift fields toggle ─────────────────────────────────────
+  function toggleGiftFields() {
+    const isGift = document.querySelector('input[name="recipient"]:checked')?.value === 'gift';
+    document.getElementById('giftFields').classList.toggle('hidden', !isGift);
+  }
+
+  // ── Format selector ────────────────────────────────────────
+  function selectFormat(el, format) {
+    selectedFormat = format;
+    document.querySelectorAll('.format-card').forEach(c => c.classList.remove('chosen'));
+    el.classList.add('chosen');
+  }
+
+  // ── Handle order ───────────────────────────────────────────
+  function handleOrder() {
+    const name = document.getElementById('childName').value.trim();
+    if (!name) {
+      document.getElementById('childName').focus();
+      document.getElementById('childName').classList.add('border-red-400');
+      setTimeout(() => document.getElementById('childName').classList.remove('border-red-400'), 2000);
+      return;
+    }
+    const story = STORIES.find(s => s.id === selectedStoryId);
+    const prices = { digital: '£12.99', print: '£28.99', bundle: '£36.99' };
+    const formats = { digital: 'Digital PDF', print: 'Printed Hardcover', bundle: 'Print + Digital Bundle' };
+    document.getElementById('modalMsg').innerHTML =
+      `<strong>${story.emoji} ${story.title}</strong> personalised for <strong>${name}</strong>.<br/>
+       Format: ${formats[selectedFormat]} · ${prices[selectedFormat]}<br/><br/>
+       A confirmation email is on its way. Thank you! 🌟`;
+    document.getElementById('orderModal').classList.remove('hidden');
+  }
+
+  // ── FAQ ────────────────────────────────────────────────────
+  const FAQS = [
+    { q: "How exactly does the personalisation work?", a: "The child's name is woven naturally into the story text on every page — it's not just stuck on the cover. Our narrative is written so the name flows into the dialogue, descriptions, and plot in a way that feels completely natural." },
+    { q: "Can I preview the full book before buying?", a: "The live preview shows the first four paragraphs of the story with your chosen name. Once you place an order, you'll receive a digital proof within 1 hour for your approval before we print." },
+    { q: "How long does printing and shipping take?", a: "Digital PDFs are available for instant download immediately after purchase. Printed hardcovers are dispatched within 2 business days and typically arrive within 5–7 days (UK) or 10–14 days internationally." },
+    { q: "What if I need to change the name after ordering?", a: "Contact us within 1 hour of placing your order and we can make changes free of charge. After that, amendments may incur a small reprint fee." },
+    { q: "Is this suitable as a last-minute gift?", a: "Absolutely! The Digital PDF option is perfect for last-minute gifting — purchase today, download instantly, and email it as a gift. Many parents print it at home and wrap it up." },
+    { q: "Do you offer bulk orders for schools or events?", a: "Yes! We offer discounts on orders of 10 or more books. Get in touch at hello@namedtales.com with your requirements and we'll be happy to help." },
+  ];
+
+  function renderFAQ() {
+    document.getElementById('faqList').innerHTML = FAQS.map((f, i) => `
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <button
+          onclick="toggleFAQ(${i})"
+          class="w-full text-left px-6 py-4 flex items-center justify-between font-bold text-gray-800 hover:bg-gray-50 transition-colors"
+        >
+          <span>${f.q}</span>
+          <span id="faqIcon${i}" class="text-violet-500 text-xl flex-shrink-0 ml-4 transition-transform">+</span>
+        </button>
+        <div id="faqAnswer${i}" class="hidden px-6 pb-5">
+          <p class="text-gray-500 text-sm leading-relaxed">${f.a}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleFAQ(i) {
+    const el = document.getElementById(`faqAnswer${i}`);
+    const icon = document.getElementById(`faqIcon${i}`);
+    const open = !el.classList.contains('hidden');
+    el.classList.toggle('hidden', open);
+    icon.textContent = open ? '+' : '−';
+    icon.style.transform = open ? 'rotate(0deg)' : 'rotate(45deg)';
+  }
+
+  // ── Init ───────────────────────────────────────────────────
+  renderStoryGrid();
+  updatePreview();
+  renderFAQ();
+</script>
+
+</body>
+</html>
