@@ -340,29 +340,32 @@
         </h3>
 
         <!-- Preview panel -->
-        <div class="preview-page rounded-3xl p-6 md:p-8 shadow-inner min-h-64 relative" id="previewPanel">
-          <!-- Story title bar -->
-          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-amber-200">
-            <div class="text-4xl" id="previewEmoji">🐉</div>
-            <div>
-              <div class="font-display text-xl text-gray-800" id="previewTitle">The Dragon's Secret</div>
-              <div class="text-xs text-gray-400 font-semibold mt-0.5">NamedTales Preview · First 4 Paragraphs</div>
+        <div class="rounded-3xl overflow-hidden border border-amber-200 shadow-sm" id="previewPanel">
+          <!-- Header -->
+          <div class="preview-page px-5 py-4 flex items-center justify-between border-b border-amber-200">
+            <div class="flex items-center gap-2">
+              <span class="text-3xl" id="previewEmoji">🐉</span>
+              <div>
+                <div class="font-display text-base text-gray-800" id="previewTitle">The Dragon's Secret</div>
+                <div class="text-xs text-gray-400">4 spreads · preview only</div>
+              </div>
             </div>
+            <div class="text-xs bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">PREVIEW</div>
           </div>
-
-          <!-- Story text -->
-          <div id="previewText" class="space-y-4 text-gray-700 leading-relaxed text-[15px]">
+          <!-- Fixed-art notice -->
+          <div class="bg-gray-50 border-b border-gray-100 px-5 py-2 flex items-center gap-2 text-xs text-gray-500 font-semibold">
+            <span>🖼️ Illustrations are the same for every buyer of this story</span>
+            <span class="text-gray-300">·</span>
+            <span class="text-violet-600">Only name &amp; traits change</span>
+          </div>
+          <!-- Spreads -->
+          <div id="previewText" class="divide-y divide-amber-100">
             <!-- rendered by JS -->
           </div>
-
-          <!-- Page turn hint -->
-          <div class="mt-8 pt-5 border-t border-amber-200 flex items-center justify-between text-xs text-gray-400 font-semibold">
-            <span>Page 1 of 32</span>
-            <span>The full book contains 32 beautifully illustrated pages</span>
+          <!-- Name key -->
+          <div id="nameKey" class="preview-page border-t border-amber-200 px-5 py-4">
+            <!-- rendered by JS -->
           </div>
-
-          <!-- Watermark -->
-          <div class="absolute bottom-16 right-6 text-xs text-amber-200 font-display select-none pointer-events-none rotate-[-8deg]">PREVIEW</div>
         </div>
 
         <!-- Tip box -->
@@ -502,6 +505,8 @@
 <!-- ─── JAVASCRIPT ─── -->
 <script>
   // ── Story Data ─────────────────────────────────────────────
+  // spreads[i].text is short (≤ 25 words). {T1}–{T4} draw from name letters.
+  // Illustrations (scene label + gradient) are FIXED — same for every buyer.
   const STORIES = [
     {
       id: 1,
@@ -512,12 +517,13 @@
       color: "from-rose-400 to-orange-400",
       bg: "bg-rose-50",
       border: "border-rose-200",
-      description: "A tiny dragon, a secret garden, and one brave child whose name-letters are the very qualities that make the dragon choose them above all others.",
-      narrative: [
-        "Everyone who knew {NAME} said exactly the same thing: that {he_she} was the most {T1} child in the whole village — and the most {T2} friend anyone could ever hope for.",
-        "One golden morning, {he_she} was exploring the old garden when {he_she} spotted something extraordinary between the rose bushes: a tiny, shimmering dragon no bigger than a kitten, watching {him_her} with one curious golden eye.",
-        "Any other child might have run. But {NAME} had always had {P1} — and so {he_she} simply knelt down, {T3} and patient, and whispered: 'Hello. I won't hurt you.' The dragon yawned, and from its tiny nostrils came the softest cloud of rainbow-coloured smoke, as if saying hello in the only language it knew.",
-        "That was the beginning of the most magical summer of {NAME}'s life. With {his_her} {T4} heart leading the way, {he_she} and the little dragon explored every secret the old garden had ever hidden — and discovered that the greatest magic of all is knowing you are never, ever alone."
+      description: "A tiny dragon. A secret garden. One child — whose name holds the exact qualities the dragon has been waiting for.",
+      gradient: "from-rose-300 to-orange-300",
+      spreads: [
+        { scene: "The Garden",     text: "{NAME} was the most {T1} child in the village. No wonder the dragon had been waiting for {him_her}." },
+        { scene: "The Meeting",    text: "It hid from everyone else. But when {NAME}'s {T2} eyes found it, the dragon stepped forward." },
+        { scene: "First Word",     text: "'{T3},' thought {NAME}, reaching out one hand. The dragon breathed rainbow smoke. That meant yes." },
+        { scene: "Ever After",     text: "From that day on, wherever {NAME}'s {T4} feet led — a dragon followed. The garden kept their secret." },
       ]
     },
     {
@@ -529,12 +535,13 @@
       color: "from-indigo-400 to-violet-500",
       bg: "bg-indigo-50",
       border: "border-indigo-200",
-      description: "When a glowing spacecraft lands in the back garden, the letters in one child's name reveal the exact qualities the universe has been searching for.",
-      narrative: [
-        "Every single night, the most {T1} dreamer on the whole street — {NAME} — would press {his_her} nose to the bedroom window and trace the stars with one finger, wondering what lay beyond the very last one.",
-        "Then one Thursday, just after supper, a soft blue light filled the back garden. A {T2} child with {P1} stepped outside alone — because {NAME} was always the kind of person who simply had to know.",
-        "A silver hatch slid open, and a gentle voice drifted out: 'We have searched seventeen galaxies,' it said, 'looking for a navigator who is both {T3} and {T4}. We found only one. That child is {NAME}.'",
-        "{He_She} climbed aboard with a steady breath and a beating heart — because {he_she} had always known, deep down, that the stars had been keeping a place with {his_her} name on it."
+      description: "The universe searched seventeen galaxies for one navigator. The answer was written in a child's name.",
+      gradient: "from-indigo-300 to-violet-400",
+      spreads: [
+        { scene: "The Night Sky",  text: "{NAME} was {T1}. Every night, {he_she} traced the stars and asked: what's out there?" },
+        { scene: "The Landing",    text: "A silver ship landed in the garden. A {T2} child would have run. {NAME} walked closer." },
+        { scene: "The Invite",     text: "'We need someone {T3},' said the voice inside. '{T4}. Someone exactly like {NAME}.'" },
+        { scene: "Lift Off",       text: "{NAME} buckled in. The stars grew larger. The universe sighed with relief." },
       ]
     },
     {
@@ -546,12 +553,13 @@
       color: "from-cyan-400 to-teal-500",
       bg: "bg-cyan-50",
       border: "border-cyan-200",
-      description: "The golden shell on the beach only glows for a child whose name holds the right letters — and today, it glows for one child alone.",
-      narrative: [
-        "The day {NAME} found the golden shell was the kind of morning that changes everything — warm and still, with the kind of quiet that only comes just before something wonderful.",
-        "{He_She} was the most {T1} explorer on the entire beach. When the shell glowed warm in {his_her} {T2} hand, a voice inside whispered: 'Only someone with {P1} could hear this call. Dive in, {NAME}. We have been waiting a long time.'",
-        "Below the waves, a whole sparkling world opened up around {him_her}. Seahorses bowed. Turtles waved their ancient flippers. A school of silver fish parted to make way, as if they had always known a {T3} child would come.",
-        "'Welcome,' said the oldest whale in a voice like rolling thunder and warm tides. 'We kept this world safe until someone {T4} enough arrived to care for it. That is you, {NAME}. It has always been you.'"
+      description: "The golden shell only glows for the right child. That child's name tells the ocean exactly who they are.",
+      gradient: "from-cyan-300 to-teal-400",
+      spreads: [
+        { scene: "The Shore",      text: "The shell glowed only for {NAME}. {He_She} was {T1}. The ocean had been waiting." },
+        { scene: "The Call",       text: "{NAME}'s {T2} hands held it tight. A voice said: 'Dive in.' So {he_she} did." },
+        { scene: "The Deep",       text: "Every creature bowed. They had hoped for someone {T3} and {T4}. They had hoped for {NAME}." },
+        { scene: "Home",           text: "The oldest whale smiled. 'You belong here.' {NAME} already knew." },
       ]
     },
     {
@@ -563,12 +571,13 @@
       color: "from-amber-400 to-yellow-400",
       bg: "bg-amber-50",
       border: "border-amber-200",
-      description: "On the wide-open plains, wild animals sense something rare in one child's name — and a lion cub walks past everyone else to find them.",
-      narrative: [
-        "{NAME} stepped off the jeep and breathed in the warm, golden-grass air of the savannah — and every creature on the plains seemed to pause for a moment, as if they sensed the arrival of someone truly {T1}.",
-        "The other visitors clustered around the binoculars. But a small lion cub walked straight past all of them and stopped right in front of {NAME} — because animals have always been able to recognise someone with {P1}.",
-        "{He_She} crouched down and held out {his_her} {T2} hand. The cub pressed its soft nose to {his_her} palm. The ranger whispered that he had never, in thirty years on the plains, seen the cub approach a single soul.",
-        "From that moment on, wherever {NAME}'s {T3} feet carried {him_her} across the savannah, the {T4} little cub walked right beside {him_her} — and every creature they passed stepped gently, respectfully, to one side."
+      description: "Every animal on the plains turns to look. Something rare has arrived — and its name says it all.",
+      gradient: "from-amber-300 to-yellow-300",
+      spreads: [
+        { scene: "The Plains",     text: "Every animal turned when {NAME} arrived. Something {T1} had come to the savannah." },
+        { scene: "The Cub",        text: "The lion cub passed everyone else. It stopped at {NAME}'s feet. A {T2} child. A {T3} heart." },
+        { scene: "The Touch",      text: "The ranger had never seen anything like it. 'Extraordinary,' he whispered. Just like {NAME}." },
+        { scene: "Side by Side",   text: "For the rest of that {T4} day, {NAME} and the cub walked together. The grass parted." },
       ]
     },
     {
@@ -580,12 +589,13 @@
       color: "from-emerald-400 to-teal-500",
       bg: "bg-emerald-50",
       border: "border-emerald-200",
-      description: "The Academy's enchanted letter only finds children whose names carry the right qualities — and this year, it finds exactly one.",
-      narrative: [
-        "The letter arrived on {NAME}'s birthday — sealed with a silver star and addressed in ink that shimmered between gold and deep violet. Inside, in careful curling script: 'Dear {NAME}, your {T1} nature has been observed for quite some time. We believe you are ready.'",
-        "{He_She} arrived at the Academy with a {T2} heart and one small bag — and the moment {his_her} foot crossed the threshold, every enchanted candle in the corridor lit itself at once, without a single spell spoken aloud.",
-        "'That,' the Deputy Headmaster whispered to no one in particular, 'is because {NAME} carries {P1}. The building simply responded.' The students who witnessed it would talk about nothing else for weeks.",
-        "'There are {T3} witches and {T4} wizards,' said the Headmistress quietly, 'and then, very occasionally, there is someone like {NAME} — who is simply, entirely themselves. It turns out that is more than enough.'"
+      description: "The Academy's letter finds only the right child. Apparently that means the one named just right.",
+      gradient: "from-emerald-300 to-teal-400",
+      spreads: [
+        { scene: "The Letter",     text: "It arrived on {NAME}'s birthday: 'We know you are {T1}. You are ready. Come.'" },
+        { scene: "The Doors",      text: "{NAME} walked in. Every candle lit at once — without a single spell." },
+        { scene: "The Gift",       text: "'How?' asked the students. 'Someone {T2} and {T3},' said the Headmistress. 'The building knows.'" },
+        { scene: "The Window",     text: "That night {NAME} thought quietly: being {T4} was the greatest magic of all." },
       ]
     },
     {
@@ -597,168 +607,160 @@
       color: "from-pink-400 to-fuchsia-500",
       bg: "bg-pink-50",
       border: "border-pink-200",
-      description: "The hidden door in the old oak tree only opens for a child whose name holds the right magic — and it has been waiting a very long time.",
-      narrative: [
-        "In the far corner of an ordinary park — behind the oldest oak tree — there was a door no bigger than a letterbox, painted in all seven colours of the rainbow. Many children had walked past it without a glance. But {NAME} was not many children. {NAME} was {T1}.",
-        "{He_She} turned the tiny brass handle with {T2} hands, and the door swung open onto a world of silver grass, drifting stars, and — in the distance — a meadow full of unicorns. Only someone with {P1} could have found the way in at all.",
-        "The largest unicorn cantered over and lowered its magnificent horn until it nearly touched {NAME}'s forehead. 'We have kept this kingdom safe for many years,' it said, 'waiting for a child who is both {T3} and {T4} enough to care for it. Hello, {NAME}.'",
-        "{He_She} placed {his_her} hand on the unicorn's warm mane — and a golden light spread from {NAME}'s fingertips across the whole of the Rainbow Kingdom, and every creature in it lifted its voice and sang."
+      description: "The painted door in the old oak has waited a long time for a name like this one.",
+      gradient: "from-pink-300 to-fuchsia-400",
+      spreads: [
+        { scene: "The Door",       text: "The rainbow door waited for someone {T1}. It waited for {NAME}." },
+        { scene: "The Kingdom",    text: "{He_She} turned the handle — {T2}, steady, sure. The whole Kingdom held its breath." },
+        { scene: "The Unicorn",    text: "'We knew you'd be {T3},' it said. 'And {T4}. We knew that too.'" },
+        { scene: "The Light",      text: "{NAME} placed one hand on the mane. Golden light spread everywhere. The Kingdom had its answer." },
       ]
     }
   ];
 
-  // ── Letter → Trait map ────────────────────────────────────
+  // ── Letter → Traits (multiple per letter for duplicate names) ─
   const LETTER_TRAITS = {
-    A: { adj: 'adventurous',   power: 'the courage to leap into the unknown'        },
-    B: { adj: 'brave',         power: 'a heart that never trembles'                 },
-    C: { adj: 'creative',      power: 'the gift of imagining new worlds'            },
-    D: { adj: 'determined',    power: 'a will that can move mountains'              },
-    E: { adj: 'empathetic',    power: 'the gift of truly understanding hearts'      },
-    F: { adj: 'fearless',      power: 'a spirit that faces any storm'               },
-    G: { adj: 'generous',      power: 'a warmth that lights up every room'          },
-    H: { adj: 'hopeful',       power: 'eyes that see the good in everything'        },
-    I: { adj: 'inventive',     power: 'a mind that builds wonders from nothing'     },
-    J: { adj: 'joyful',        power: 'a laugh that turns darkness into light'      },
-    K: { adj: 'kind',          power: 'a touch that heals and comforts all'         },
-    L: { adj: 'loyal',         power: 'a bond that can never be broken'             },
-    M: { adj: 'magical',       power: 'a sense for noticing what others miss'       },
-    N: { adj: 'noble',         power: 'a spirit that lifts everyone around'         },
-    O: { adj: 'optimistic',    power: 'the gift of turning every cloud silver'      },
-    P: { adj: 'perceptive',    power: 'the wisdom to see what is truly there'       },
-    Q: { adj: 'quick-witted',  power: 'a mind that moves faster than lightning'     },
-    R: { adj: 'resilient',     power: 'the strength to rise again and again'        },
-    S: { adj: 'spirited',      power: 'an energy that moves like the wind'          },
-    T: { adj: 'thoughtful',    power: 'a care and attention that changes everything'},
-    U: { adj: 'unique',        power: 'a gift that belongs to no one else'          },
-    V: { adj: 'valiant',       power: 'a bravery that shines like a beacon'         },
-    W: { adj: 'wise',          power: 'the knowing that comes from deep within'     },
-    X: { adj: 'extraordinary', power: 'a nature that exceeds all expectation'       },
-    Y: { adj: 'curious',       power: 'a curiosity that opens every door'           },
-    Z: { adj: 'zealous',       power: 'a passion that sets the world alight'        },
+    A: [{ adj:'adventurous', power:'the courage to leap into the unknown'          }, { adj:'artistic',     power:'an eye that finds beauty in everything'      }, { adj:'agile',       power:'the ability to adapt to anything'            }],
+    B: [{ adj:'brave',       power:'a heart that never trembles'                   }, { adj:'brilliant',    power:'a mind that shines in the dark'              }, { adj:'bubbly',      power:'a joy that lifts everyone nearby'            }],
+    C: [{ adj:'creative',    power:'the gift of imagining new worlds'              }, { adj:'caring',       power:'a warmth that others always feel'            }, { adj:'courageous',  power:'the will to try even when it is hard'        }],
+    D: [{ adj:'determined',  power:'a will that can move mountains'                }, { adj:'daring',       power:'the nerve to go where others will not'       }, { adj:'devoted',     power:'a faithfulness that never wavers'            }],
+    E: [{ adj:'empathetic',  power:'the gift of truly understanding hearts'        }, { adj:'energetic',    power:'a spark that lights up every room'           }, { adj:'enthusiastic',power:'a passion that makes everything possible'      }],
+    F: [{ adj:'fearless',    power:'a spirit that faces any storm'                 }, { adj:'friendly',     power:'the warmth that turns strangers into friends'}, { adj:'focused',     power:'a steadiness that never strays'              }],
+    G: [{ adj:'generous',    power:'a warmth that lights up every room'            }, { adj:'gentle',       power:'a softness the world needs more of'         }, { adj:'gifted',      power:'a talent that surprises everyone'            }],
+    H: [{ adj:'hopeful',     power:'eyes that see the good in everything'          }, { adj:'heroic',       power:'the strength to stand up when it counts'    }, { adj:'honest',      power:'a truthfulness that others always trust'     }],
+    I: [{ adj:'inventive',   power:'a mind that builds wonders from nothing'       }, { adj:'imaginative',  power:'the power to dream what has never been'     }, { adj:'intuitive',   power:'a knowing that comes before the question'    }],
+    J: [{ adj:'joyful',      power:'a laugh that turns darkness into light'        }, { adj:'just',         power:'a fairness that everyone can feel'           }, { adj:'jubilant',    power:'a celebration that lives in every step'      }],
+    K: [{ adj:'kind',        power:'a touch that heals and comforts all'           }, { adj:'keen',         power:'a sharpness that misses nothing'             }, { adj:'knowing',     power:'a wisdom beyond their years'                 }],
+    L: [{ adj:'loyal',       power:'a bond that can never be broken'               }, { adj:'lively',       power:'an energy that fills every room'             }, { adj:'luminous',    power:'a brightness that others are drawn to'       }],
+    M: [{ adj:'magical',     power:'a sense for noticing what others miss'         }, { adj:'mighty',       power:'a strength that surprises everyone'          }, { adj:'mindful',     power:'a presence that is truly, fully there'       }],
+    N: [{ adj:'noble',       power:'a spirit that lifts everyone around'           }, { adj:'nimble',       power:'a quickness of body and mind'                }, { adj:'nurturing',   power:'a care that helps everything grow'           }],
+    O: [{ adj:'optimistic',  power:'the gift of turning every cloud silver'        }, { adj:'open-hearted', power:'a welcome that leaves no one out'            }, { adj:'observant',   power:'eyes that catch everything'                  }],
+    P: [{ adj:'perceptive',  power:'the wisdom to see what is truly there'         }, { adj:'playful',      power:'a lightness that makes everything fun'       }, { adj:'patient',     power:'the gift of waiting for the right moment'    }],
+    Q: [{ adj:'quick-witted',power:'a mind that moves faster than lightning'       }, { adj:'questing',     power:'a hunger for discovery that never fades'     }, { adj:'quiet-strong',power:'a steady power that needs no audience'       }],
+    R: [{ adj:'resilient',   power:'the strength to rise again and again'          }, { adj:'radiant',      power:'a glow that others cannot help but notice'   }, { adj:'remarkable',  power:'a quality that leaves the world changed'     }],
+    S: [{ adj:'spirited',    power:'an energy that moves like the wind'            }, { adj:'strong',       power:'a power that shows when it is needed most'   }, { adj:'sharp',       power:'a mind that finds the answer before the question ends'}],
+    T: [{ adj:'thoughtful',  power:'a care and attention that changes everything'  }, { adj:'tenacious',    power:'a grip on what matters that never loosens'   }, { adj:'tender',      power:'a gentleness that makes the world feel safer'}],
+    U: [{ adj:'unique',      power:'a gift that belongs to no one else'            }, { adj:'unbreakable',  power:'a spirit that no difficulty can crack'       }, { adj:'understanding',power:'a patience that helps others feel seen'        }],
+    V: [{ adj:'valiant',     power:'a bravery that shines like a beacon'           }, { adj:'vibrant',      power:'an aliveness that makes everything brighter' }, { adj:'visionary',   power:'the ability to see what could be'             }],
+    W: [{ adj:'wise',        power:'the knowing that comes from deep within'       }, { adj:'warm',         power:'a kindness that wraps around everyone near'  }, { adj:'wonder-filled',power:'a delight in the world that never fades'       }],
+    X: [{ adj:'extraordinary',power:'a nature that exceeds all expectation'        }, { adj:'expressive',   power:'a voice that makes others feel understood'   }, { adj:'exact',       power:'a precision that gets things just right'     }],
+    Y: [{ adj:'curious',     power:'a curiosity that opens every door'             }, { adj:'youthful',     power:'a freshness that sees everything as new'     }, { adj:'yearning',    power:'a longing that leads to the best discoveries' }],
+    Z: [{ adj:'zealous',     power:'a passion that sets the world alight'          }, { adj:'zesty',        power:'a liveliness that makes everything sparkle'  }, { adj:'zen',         power:'a calm at the centre of any storm'            }],
   };
 
-  const TRAIT_COLOURS = [
-    'text-violet-600', 'text-pink-600', 'text-emerald-600', 'text-amber-600',
-    'text-sky-600',    'text-rose-600', 'text-teal-600',    'text-orange-600',
-  ];
+  const TRAIT_COLOURS = ['text-violet-600','text-pink-600','text-emerald-600','text-amber-600','text-sky-600','text-rose-600'];
 
+  // Tracks duplicate letters — EMMA: E→empathetic, M→magical, M→mighty, A→adventurous
   function getTraits(name) {
     const letters = (name || '').toUpperCase().replace(/[^A-Z]/g, '').split('');
-    if (!letters.length) return Array(4).fill({ adj: 'wonderful', power: 'a gift all their own' });
-    return letters.map(l => LETTER_TRAITS[l] || { adj: 'wonderful', power: 'a gift all their own' });
+    if (!letters.length) return Array(4).fill({ adj:'wonderful', power:'a gift all their own' });
+    const used = {};
+    return letters.map(l => {
+      const pool = LETTER_TRAITS[l];
+      if (!pool) return { adj:'wonderful', power:'a gift all their own' };
+      const idx = used[l] = (used[l] ?? -1) + 1;
+      return pool[idx % pool.length];
+    });
   }
 
   // ── Pronoun helpers ─────────────────────────────────────────
   function getPronouns() {
     const val = document.querySelector('input[name="pronoun"]:checked')?.value || 'he';
     return {
-      he_she:          val === 'he' ? 'he'       : val === 'she' ? 'she'      : 'they',
-      him_her:         val === 'he' ? 'him'      : val === 'she' ? 'her'      : 'them',
-      his_her:         val === 'he' ? 'his'      : val === 'she' ? 'her'      : 'their',
-      He_She:          val === 'he' ? 'He'       : val === 'she' ? 'She'      : 'They',
-      Him_Her:         val === 'he' ? 'Him'      : val === 'she' ? 'Her'      : 'Them',
-      His_Her:         val === 'he' ? 'His'      : val === 'she' ? 'Her'      : 'Their',
-      himself_herself: val === 'he' ? 'himself'  : val === 'she' ? 'herself'  : 'themself',
+      he_she:  val==='he'?'he' :val==='she'?'she' :'they',
+      him_her: val==='he'?'him':val==='she'?'her' :'them',
+      his_her: val==='he'?'his':val==='she'?'her' :'their',
+      He_She:  val==='he'?'He' :val==='she'?'She' :'They',
     };
   }
 
   function personalise(text, name) {
     const traits = getTraits(name);
     const p = getPronouns();
-    // Cycle through letters for T1–T4; T1 also drives P1
-    const t = [0, 1, 2, 3].map(i => traits[i % traits.length]);
-    const displayName = name
+    const t = [0,1,2,3].map(i => traits[i % traits.length]);
+    const dn = name
       ? `<span class="highlight-name">${name}</span>`
-      : '<span class="highlight-name" style="color:#9ca3af;font-style:italic">your child</span>';
+      : `<span class="highlight-name" style="color:#9ca3af;font-style:italic">your child</span>`;
     return text
-      .replace(/{NAME}/g, displayName)
+      .replace(/{NAME}/g, dn)
       .replace(/{T1}/g, `<strong class="${TRAIT_COLOURS[0]}">${t[0].adj}</strong>`)
       .replace(/{T2}/g, `<strong class="${TRAIT_COLOURS[1]}">${t[1].adj}</strong>`)
       .replace(/{T3}/g, `<strong class="${TRAIT_COLOURS[2]}">${t[2].adj}</strong>`)
       .replace(/{T4}/g, `<strong class="${TRAIT_COLOURS[3]}">${t[3].adj}</strong>`)
-      .replace(/{P1}/g, `<em class="${TRAIT_COLOURS[0]} not-italic font-semibold">${t[0].power}</em>`)
-      .replace(/{he_she}/g, p.he_she)
-      .replace(/{him_her}/g, p.him_her)
-      .replace(/{his_her}/g, p.his_her)
-      .replace(/{He_She}/g, p.He_She)
-      .replace(/{Him_Her}/g, p.Him_Her)
-      .replace(/{His_Her}/g, p.His_Her)
-      .replace(/{himself_herself}/g, p.himself_herself);
+      .replace(/{he_she}/g, p.he_she).replace(/{He_She}/g, p.He_She)
+      .replace(/{him_her}/g, p.him_her).replace(/{his_her}/g, p.his_her);
   }
 
-  // ── Name Key ───────────────────────────────────────────────
+  // ── Name Key (printed inside back cover) ──────────────────
   function renderNameKey(name) {
-    if (!name) return '';
+    const nkEl = document.getElementById('nameKey');
+    if (!name) {
+      nkEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">Type a name to see the Name Key</p>';
+      return;
+    }
     const letters = name.toUpperCase().replace(/[^A-Z]/g, '').split('');
+    const used = {};
     const rows = letters.map((l, i) => {
-      const t = LETTER_TRAITS[l] || { adj: 'wonderful', power: 'a gift all their own' };
-      const col = TRAIT_COLOURS[i % TRAIT_COLOURS.length];
-      return `
-        <div class="flex items-center gap-3 py-2.5 border-b border-amber-100 last:border-0">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 text-white font-display text-lg flex items-center justify-center flex-shrink-0 shadow-sm">${l}</div>
-          <div class="flex-1 min-w-0">
-            <span class="font-bold ${col} capitalize text-sm">${t.adj}</span>
-            <span class="text-gray-400 text-xs"> · ${t.power}</span>
-          </div>
-        </div>`;
-    }).join('');
-    return `
-      <div class="mt-6 preview-page rounded-2xl p-5 border border-amber-200">
-        <div class="font-display text-base text-gray-600 mb-1">
-          ✦ What <span class="text-violet-600">${name}</span>'s name means in this story
-        </div>
-        <p class="text-xs text-gray-400 mb-4">Every letter unlocks a quality woven into the adventure — printed as the Name Key inside the back cover.</p>
-        ${rows}
+      const pool = LETTER_TRAITS[l];
+      const idx  = used[l] = (used[l] ?? -1) + 1;
+      const t    = pool ? pool[idx % pool.length] : { adj:'wonderful', power:'a gift all their own' };
+      const col  = TRAIT_COLOURS[i % TRAIT_COLOURS.length];
+      return `<div class="flex items-center gap-3 py-2 border-b border-amber-100 last:border-0">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 text-white font-display text-base flex items-center justify-center flex-shrink-0">${l}</div>
+        <div><span class="font-bold ${col} capitalize text-sm">${t.adj}</span><span class="text-gray-400 text-xs"> — ${t.power}</span></div>
       </div>`;
+    }).join('');
+    nkEl.innerHTML = `
+      <div class="font-display text-sm text-gray-600 mb-2">✦ <span class="text-violet-600">${name}</span>'s Name Key — printed inside the back cover</div>
+      ${rows}`;
   }
 
   // ── State ──────────────────────────────────────────────────
   let selectedStoryId = 1;
-  let selectedFormat = 'print';
+  let selectedFormat  = 'print';
 
-  // ── Render story grid ──────────────────────────────────────
+  // ── Story grid ─────────────────────────────────────────────
   function renderStoryGrid() {
-    const grid = document.getElementById('storyGrid');
-    grid.innerHTML = STORIES.map(s => `
-      <div
-        class="story-card cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${s.bg} ${s.border} ${s.id === selectedStoryId ? 'ring-4 ring-violet-400 ring-offset-2 scale-[1.03]' : ''}"
-        onclick="selectStory(${s.id})"
-        id="storyCard${s.id}"
-        title="${s.title}"
-      >
+    document.getElementById('storyGrid').innerHTML = STORIES.map(s => `
+      <div class="story-card cursor-pointer rounded-2xl border-2 p-4 text-center ${s.bg} ${s.border} ${s.id===selectedStoryId?'ring-4 ring-violet-400 ring-offset-2 scale-[1.03]':''}"
+           onclick="selectStory(${s.id})">
         <div class="text-4xl mb-2">${s.emoji}</div>
         <div class="font-bold text-gray-700 text-xs leading-tight">${s.title}</div>
         <div class="text-xs text-gray-400 mt-1">Age ${s.ageRange}</div>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
   function selectStory(id) {
     selectedStoryId = id;
     renderStoryGrid();
     updatePreview();
-    // update book cover mockup name
     document.getElementById('heroBookName').textContent =
       document.getElementById('childName').value.trim() || 'Emma';
   }
 
-  // ── Update live preview ────────────────────────────────────
+  // ── Live preview: book spreads ─────────────────────────────
   function updatePreview() {
     const story = STORIES.find(s => s.id === selectedStoryId);
     const name  = document.getElementById('childName').value.trim();
 
-    // update cover mockup
     document.getElementById('heroBookName').textContent = name || 'Emma';
-
-    // update preview header
     document.getElementById('previewEmoji').textContent = story.emoji;
     document.getElementById('previewTitle').textContent = story.title;
 
-    // render paragraphs + Name Key
-    const paras = story.narrative
-      .map(para => `<p class="text-[15px] leading-loose">${personalise(para, name)}</p>`)
-      .join('');
-    document.getElementById('previewText').innerHTML = paras + renderNameKey(name);
+    // Each spread: fixed illustration placeholder on left, personalised text on right
+    document.getElementById('previewText').innerHTML = story.spreads.map((sp, i) => `
+      <div class="grid grid-cols-2 min-h-[100px]">
+        <div class="bg-gradient-to-br ${story.gradient} flex flex-col items-center justify-center p-4 text-center relative">
+          <div class="text-4xl mb-1">${story.emoji}</div>
+          <div class="text-white/80 text-[10px] font-bold uppercase tracking-widest">${sp.scene}</div>
+          <div class="absolute top-2 left-2 text-[9px] bg-black/20 text-white px-1.5 py-0.5 rounded font-semibold">ART ${i+1}</div>
+        </div>
+        <div class="bg-white px-4 py-5 flex items-center">
+          <p class="text-sm leading-relaxed text-gray-700">${personalise(sp.text, name)}</p>
+        </div>
+      </div>`).join('');
+
+    renderNameKey(name);
   }
 
   // ── Gift fields toggle ─────────────────────────────────────
