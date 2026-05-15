@@ -504,118 +504,166 @@
 
 <!-- ─── JAVASCRIPT ─── -->
 <script>
+  // ── Scene art builder ──────────────────────────────────────
+  // sc(gradient, mainEmoji, [[emoji,cssPos,fontSize], ...])
+  // Called at definition time — art is static HTML, same for every buyer.
+  function sc(bg, main, ex) {
+    const extras = (ex||[]).map(([e,s,f])=>
+      `<span style="position:absolute;${s};font-size:${f||'1.25rem'};line-height:1">${e}</span>`
+    ).join('');
+    return `<div style="background:${bg};width:100%;height:100%;min-height:118px;position:relative;overflow:hidden">`
+      + extras
+      + `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:3.4rem;filter:drop-shadow(0 4px 12px rgba(0,0,0,.22));line-height:1">${main}</span>`
+      + `</div>`;
+  }
+  // Fixed star field reused in space/night scenes
+  const STARS = [[8,8],[23,5],[38,14],[54,4],[68,10],[83,7],[93,15],[13,24],[31,28],[47,20],[64,26],[79,22],[91,31],[5,40],[27,38],[43,35],[60,42],[82,36],[97,44]].map(
+    ([x,y])=>`<span style="position:absolute;left:${x}%;top:${y}%;width:${x%5?2:3}px;height:${x%5?2:3}px;background:#fff;border-radius:50%;opacity:${y%7?0.7:1}"></span>`
+  ).join('');
+
   // ── Story Data ─────────────────────────────────────────────
-  // spreads[i].text is short (≤ 25 words). {T1}–{T4} draw from name letters.
-  // Illustrations (scene label + gradient) are FIXED — same for every buyer.
+  // Each spread uses exactly ONE {T} — filled by traits[spreadIndex % nameLength].
+  // For a 10-letter name every spread gets a unique letter-trait; short names cycle.
+  // Art HTML is precomputed (same for every buyer of a given story).
   const STORIES = [
-    {
-      id: 1,
-      title: "The Dragon's Secret",
-      emoji: "🐉",
-      ageRange: "4–8",
-      pages: 32,
-      color: "from-rose-400 to-orange-400",
-      bg: "bg-rose-50",
-      border: "border-rose-200",
-      description: "A tiny dragon. A secret garden. One child — whose name holds the exact qualities the dragon has been waiting for.",
-      gradient: "from-rose-300 to-orange-300",
-      spreads: [
-        { scene: "The Garden",     text: "{NAME} was the most {T1} child in the village. No wonder the dragon had been waiting for {him_her}." },
-        { scene: "The Meeting",    text: "It hid from everyone else. But when {NAME}'s {T2} eyes found it, the dragon stepped forward." },
-        { scene: "First Word",     text: "'{T3},' thought {NAME}, reaching out one hand. The dragon breathed rainbow smoke. That meant yes." },
-        { scene: "Ever After",     text: "From that day on, wherever {NAME}'s {T4} feet led — a dragon followed. The garden kept their secret." },
+    // ── Story 1 ────────────────────────────────────────────────
+    { id:1, title:"The Dragon's Secret", emoji:"🐉", ageRange:"4–8", pages:32,
+      color:"from-rose-400 to-orange-400", bg:"bg-rose-50", border:"border-rose-200",
+      description:"A tiny dragon. A secret garden. One child — whose name holds every quality the dragon has been waiting for.",
+      spreads:[
+        { scene:"The Village",   text:"{NAME} lived at the edge of the village — the most {T} child anyone had ever known.",
+          art: sc('linear-gradient(180deg,#87CEEB 0%,#B0E0E6 45%,#90EE90 72%,#2D7A3A 100%)','🏡',[['☀️','top:10%;right:16%','1.8rem'],['☁️','top:18%;left:7%','1.4rem'],['🌸','bottom:14%;left:10%'],['🌷','bottom:14%;right:10%']]) },
+        { scene:"Old Garden",    text:"Beyond the gate was a forgotten garden. {T} children always find their way in.",
+          art: sc('linear-gradient(180deg,#A7F3D0 0%,#6EE7B7 40%,#34D399 70%,#065F46 100%)','🚪',[['🌿','top:10%;left:8%','1.5rem'],['🌹','bottom:14%;left:12%'],['🍃','top:14%;right:9%','1.3rem'],['🌸','bottom:12%;right:11%']]) },
+        { scene:"The Glimmer",   text:"Deep in the roses, something caught the light. {NAME} stopped. A {T} heart always knows to wait.",
+          art: sc('linear-gradient(135deg,#FEF9C3 0%,#FDE68A 45%,#A7F3D0 100%)','✨',[['🌹','bottom:14%;left:9%','1.5rem'],['🌸','bottom:12%;right:10%'],['🌿','top:10%;left:8%','1.3rem'],['💫','top:12%;right:12%','1.4rem']]) },
+        { scene:"The Dragon",    text:"A dragon — no bigger than a cat — blinked up at {him_her}. It had been there all along.",
+          art: sc('linear-gradient(180deg,#FECACA 0%,#FCA5A5 40%,#FED7AA 75%,#F97316 100%)','🐉',[['🌹','bottom:14%;left:9%'],['✨','top:10%;right:12%','1.5rem'],['🌸','bottom:12%;right:10%'],['🌿','top:12%;left:7%','1.2rem']]) },
+        { scene:"First Touch",   text:"{NAME} knelt down — {T} and still. 'Hello,' {he_she} whispered. 'I won't hurt you.'",
+          art: sc('linear-gradient(135deg,#FEF3C7 0%,#FECDD3 100%)','🤝',[['🐉','top:10%;right:12%','1.6rem'],['🌸','bottom:14%;left:10%'],['✨','top:12%;left:8%','1.3rem'],['🌷','bottom:12%;right:10%']]) },
+        { scene:"Rainbow Smoke", text:"The dragon opened its mouth — and out came a cloud of rainbow smoke. Soft. Warm. {T}. That meant yes.",
+          art: sc('linear-gradient(135deg,#F5D0FE 0%,#FCE7F3 40%,#FED7AA 100%)','🌈',[['🐉','top:10%;left:8%','1.6rem'],['💨','top:14%;right:10%','1.4rem'],['✨','bottom:14%;left:9%','1.3rem'],['💫','bottom:12%;right:11%']]) },
+        { scene:"Every Day",     text:"All summer long, {NAME}'s {T} heart led {him_her} back. They played. They explored. They trusted.",
+          art: sc('linear-gradient(180deg,#D1FAE5 0%,#A7F3D0 40%,#FEF9C3 75%,#FDE68A 100%)','🐉',[['🌸','bottom:12%;left:9%'],['☀️','top:10%;right:14%','1.8rem'],['🌿','bottom:14%;right:10%'],['🌺','top:14%;left:8%','1.3rem']]) },
+        { scene:"The Secret",    text:"At night, {NAME} smiled up at the stars. A dragon. A garden. A {T} secret, kept forever.",
+          art: sc('linear-gradient(180deg,#1E1B4B 0%,#312E81 45%,#4C1D95 100%)','🌙',[['⭐','top:10%;right:14%','1.4rem'],['💫','top:16%;left:8%','1.2rem'],['🐉','bottom:14%;left:9%','1.5rem'],['🌟','bottom:12%;right:10%','1.3rem']]+STARS) },
       ]
     },
-    {
-      id: 2,
-      title: "Journey to the Stars",
-      emoji: "🚀",
-      ageRange: "4–9",
-      pages: 36,
-      color: "from-indigo-400 to-violet-500",
-      bg: "bg-indigo-50",
-      border: "border-indigo-200",
-      description: "The universe searched seventeen galaxies for one navigator. The answer was written in a child's name.",
-      gradient: "from-indigo-300 to-violet-400",
-      spreads: [
-        { scene: "The Night Sky",  text: "{NAME} was {T1}. Every night, {he_she} traced the stars and asked: what's out there?" },
-        { scene: "The Landing",    text: "A silver ship landed in the garden. A {T2} child would have run. {NAME} walked closer." },
-        { scene: "The Invite",     text: "'We need someone {T3},' said the voice inside. '{T4}. Someone exactly like {NAME}.'" },
-        { scene: "Lift Off",       text: "{NAME} buckled in. The stars grew larger. The universe sighed with relief." },
+    // ── Story 2 ────────────────────────────────────────────────
+    { id:2, title:"Journey to the Stars", emoji:"🚀", ageRange:"4–9", pages:36,
+      color:"from-indigo-400 to-violet-500", bg:"bg-indigo-50", border:"border-indigo-200",
+      description:"The universe searched seventeen galaxies for one navigator. The answer was written in a child's name.",
+      spreads:[
+        { scene:"The Window",    text:"{NAME} was {T} about one thing above all others: the stars. Every night, {he_she} counted them.",
+          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1A1B4B 55%,#2D1B69 100%)','🪟',[['⭐','top:8%;left:9%','1.3rem'],['🌟','top:10%;right:12%','1.2rem'],['💫','bottom:18%;left:8%','1.1rem'],['✨','bottom:16%;right:9%','1.1rem']]+STARS) },
+        { scene:"Beyond",        text:"Beyond the last star, {NAME} was {T} there was something wonderful waiting. {He_She} had to know.",
+          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1E1B4B 40%,#4C1D95 100%)','🔭',[['⭐','top:9%;right:11%','1.3rem'],['🌠','top:15%;left:7%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌌','bottom:14%;right:8%','1.5rem']]+STARS) },
+        { scene:"Blue Light",    text:"One Thursday, a soft blue glow filled the garden. A {T} child does not stay inside.",
+          art: sc('linear-gradient(180deg,#DBEAFE 0%,#93C5FD 40%,#3B82F6 75%,#1D4ED8 100%)','💡',[['🌙','top:10%;right:14%','1.6rem'],['⭐','top:14%;left:8%','1.2rem'],['🌿','bottom:14%;left:9%'],['✨','bottom:12%;right:10%','1.3rem']]) },
+        { scene:"The Ship",      text:"A silver ship. Small. Quiet. Humming. {NAME} walked right up — {T} and steady.",
+          art: sc('linear-gradient(180deg,#E0F2FE 0%,#BAE6FD 35%,#7DD3FC 65%,#0EA5E9 100%)','🚀',[['⭐','top:8%;right:13%','1.2rem'],['🌙','top:12%;left:7%','1.5rem'],['🌿','bottom:14%;left:9%'],['💫','bottom:12%;right:10%','1.2rem']]) },
+        { scene:"The Voice",     text:"'We've searched seventeen galaxies,' said the voice. 'We need someone {T}. We need {NAME}.'",
+          art: sc('linear-gradient(135deg,#C7D2FE 0%,#A5B4FC 40%,#818CF8 100%)','🔊',[['⭐','top:9%;left:8%','1.2rem'],['💫','top:13%;right:11%','1.3rem'],['✨','bottom:16%;left:9%','1.2rem'],['🌟','bottom:14%;right:10%','1.3rem']]) },
+        { scene:"Inside",        text:"Inside: light and maps and stars through every window. {NAME}'s {T} spirit felt at home.",
+          art: sc('linear-gradient(180deg,#050510 0%,#0B0C2A 40%,#1A0A3A 100%)','🌌',[['⭐','top:8%;right:12%','1.3rem'],['🚀','top:13%;left:8%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌟','bottom:13%;right:10%','1.3rem']]+STARS) },
+        { scene:"Lift Off",      text:"The ground fell away. The sky turned black. The stars grew close. The most {T} launch ever.",
+          art: sc('linear-gradient(180deg,#030712 0%,#1A1B4B 35%,#FF8C00 75%,#FF4500 100%)','🚀',[['🔥','bottom:10%;left:40%','1.8rem'],['💨','bottom:14%;left:10%','1.4rem'],['💨','bottom:12%;right:10%','1.4rem'],['⭐','top:8%;right:12%','1.3rem']]) },
+        { scene:"Navigator",     text:"{NAME} pointed at the next star. 'That one,' {he_she} said. 'Let's go.' The universe listened.",
+          art: sc('linear-gradient(180deg,#030712 0%,#050520 40%,#0B0C2A 100%)','🌟',[['🚀','top:10%;left:7%','1.5rem'],['⭐','top:8%;right:11%','1.3rem'],['💫','bottom:16%;left:9%','1.2rem'],['✨','bottom:13%;right:10%','1.2rem']]+STARS) },
       ]
     },
-    {
-      id: 3,
-      title: "The Ocean Explorer",
-      emoji: "🌊",
-      ageRange: "3–7",
-      pages: 28,
-      color: "from-cyan-400 to-teal-500",
-      bg: "bg-cyan-50",
-      border: "border-cyan-200",
-      description: "The golden shell only glows for the right child. That child's name tells the ocean exactly who they are.",
-      gradient: "from-cyan-300 to-teal-400",
-      spreads: [
-        { scene: "The Shore",      text: "The shell glowed only for {NAME}. {He_She} was {T1}. The ocean had been waiting." },
-        { scene: "The Call",       text: "{NAME}'s {T2} hands held it tight. A voice said: 'Dive in.' So {he_she} did." },
-        { scene: "The Deep",       text: "Every creature bowed. They had hoped for someone {T3} and {T4}. They had hoped for {NAME}." },
-        { scene: "Home",           text: "The oldest whale smiled. 'You belong here.' {NAME} already knew." },
+    // ── Story 3 ────────────────────────────────────────────────
+    { id:3, title:"The Ocean Explorer", emoji:"🌊", ageRange:"3–7", pages:28,
+      color:"from-cyan-400 to-teal-500", bg:"bg-cyan-50", border:"border-cyan-200",
+      description:"The golden shell only glows for the right child. That child's name tells the ocean exactly who they are.",
+      spreads:[
+        { scene:"The Shore",     text:"{NAME} loved the beach more than anywhere. {He_She} was {T} — and the sea was full of secrets.",
+          art: sc('linear-gradient(180deg,#87CEEB 0%,#B0E0E6 35%,#F4D03F 65%,#DEB887 100%)','🏖️',[['☀️','top:10%;right:14%','1.8rem'],['⛅','top:16%;left:7%','1.3rem'],['🌊','bottom:12%;left:8%','1.4rem'],['🦀','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"The Shell",     text:"Half-buried in the sand — a golden shell. Warm. Glowing. Only a {T} child would notice.",
+          art: sc('linear-gradient(180deg,#FEF9C3 0%,#FDE68A 45%,#F59E0B 80%,#DEB887 100%)','🐚',[['☀️','top:10%;right:13%','1.7rem'],['🌊','top:16%;left:7%','1.4rem'],['✨','bottom:14%;left:9%','1.3rem'],['💫','bottom:12%;right:10%','1.3rem']]) },
+        { scene:"The Call",      text:"{NAME}'s {T} hands held it close. A voice whispered: 'We've been waiting. Dive in.'",
+          art: sc('linear-gradient(135deg,#FEF08A 0%,#FCD34D 40%,#F59E0B 100%)','✨',[['🐚','top:10%;left:8%','1.5rem'],['💫','top:12%;right:10%','1.3rem'],['🌊','bottom:14%;left:8%','1.4rem'],['🌟','bottom:12%;right:10%','1.3rem']]) },
+        { scene:"Into the Waves",text:"{NAME} walked in — one step, two, three. The water welcomed someone {T}.",
+          art: sc('linear-gradient(180deg,#87CEEB 0%,#29ABE2 30%,#0077B6 65%,#023E8A 100%)','🌊',[['☀️','top:10%;right:13%','1.7rem'],['🐚','top:14%;left:7%','1.4rem'],['💦','bottom:14%;left:9%','1.4rem'],['🐠','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"Underwater",    text:"{He_She} could breathe. A whole world below — colour, light, creatures — all for {NAME}.",
+          art: sc('linear-gradient(180deg,#0891B2 0%,#0D9488 35%,#0E7490 70%,#065F46 100%)','🐟',[['🐠','top:10%;left:8%','1.5rem'],['🐙','top:13%;right:10%','1.4rem'],['🌿','bottom:14%;left:8%'],['🐡','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Welcome",   text:"Seahorse bowed. Turtle waved. A hundred silver fish parted for {NAME}. They knew a {T} child.",
+          art: sc('linear-gradient(180deg,#0E7490 0%,#0F766E 40%,#134E4A 100%)','🐬',[['🐠','top:9%;left:8%','1.4rem'],['🐡','top:13%;right:10%','1.3rem'],['🌊','bottom:14%;left:8%','1.4rem'],['🐟','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Whale",     text:"The oldest whale turned slowly. 'We kept this safe for someone {T}. That's you, {NAME}.'",
+          art: sc('linear-gradient(180deg,#164E63 0%,#155E75 35%,#0E4429 70%,#052E16 100%)','🐋',[['🫧','top:10%;left:9%','1.4rem'],['🐠','top:14%;right:9%','1.3rem'],['✨','bottom:14%;left:8%','1.3rem'],['💫','bottom:12%;right:10%','1.2rem']]) },
+        { scene:"Home",          text:"The shell was warm in {his_her} {T} hand as {NAME} swam back. The ocean would always be there.",
+          art: sc('linear-gradient(180deg,#FF7F50 0%,#FFA07A 30%,#F4D03F 65%,#DEB887 100%)','🌅',[['🐚','top:10%;left:8%','1.5rem'],['⭐','top:12%;right:11%','1.3rem'],['🌊','bottom:14%;left:8%','1.4rem'],['✨','bottom:12%;right:9%','1.3rem']]) },
       ]
     },
-    {
-      id: 4,
-      title: "The Brave Safari",
-      emoji: "🦁",
-      ageRange: "3–7",
-      pages: 30,
-      color: "from-amber-400 to-yellow-400",
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      description: "Every animal on the plains turns to look. Something rare has arrived — and its name says it all.",
-      gradient: "from-amber-300 to-yellow-300",
-      spreads: [
-        { scene: "The Plains",     text: "Every animal turned when {NAME} arrived. Something {T1} had come to the savannah." },
-        { scene: "The Cub",        text: "The lion cub passed everyone else. It stopped at {NAME}'s feet. A {T2} child. A {T3} heart." },
-        { scene: "The Touch",      text: "The ranger had never seen anything like it. 'Extraordinary,' he whispered. Just like {NAME}." },
-        { scene: "Side by Side",   text: "For the rest of that {T4} day, {NAME} and the cub walked together. The grass parted." },
+    // ── Story 4 ────────────────────────────────────────────────
+    { id:4, title:"The Brave Safari", emoji:"🦁", ageRange:"3–7", pages:30,
+      color:"from-amber-400 to-yellow-400", bg:"bg-amber-50", border:"border-amber-200",
+      description:"Every animal on the plains turns to look. Something rare has arrived — and its name says everything.",
+      spreads:[
+        { scene:"Arrival",       text:"The plane landed in golden dust. {NAME} stepped out and breathed deep. Something {T} had arrived.",
+          art: sc('linear-gradient(180deg,#87CEEB 0%,#FFF3B0 45%,#DDA520 75%,#8B6914 100%)','✈️',[['☀️','top:10%;right:14%','1.9rem'],['🌅','top:15%;left:7%','1.5rem'],['🌍','bottom:14%;left:9%','1.4rem'],['🌾','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Jeep",      text:"The jeep bounced through tall grass. Others held binoculars. {NAME}'s {T} eyes just watched.",
+          art: sc('linear-gradient(180deg,#FEF9C3 0%,#FDE68A 40%,#DDA520 72%,#8B6914 100%)','🚙',[['🌾','top:12%;left:7%','1.4rem'],['☀️','top:10%;right:13%','1.8rem'],['🦒','bottom:14%;left:8%','1.4rem'],['🌿','bottom:12%;right:9%']]) },
+        { scene:"The Plains",    text:"Giraffes. Zebras. Elephants in the distance. All of them turned. They sensed someone {T}.",
+          art: sc('linear-gradient(180deg,#FBB024 0%,#F59E0B 40%,#D97706 72%,#92400E 100%)','🌅',[['🌾','top:12%;left:7%','1.4rem'],['☀️','top:9%;right:13%','1.8rem'],['🦒','bottom:14%;left:8%','1.5rem'],['🦓','bottom:12%;right:8%','1.4rem']]) },
+        { scene:"Every Eye",     text:"Animals always know. They sensed someone {T}. They sensed {NAME}.",
+          art: sc('linear-gradient(180deg,#F59E0B 0%,#D97706 40%,#B45309 72%,#78350F 100%)','👁️',[['🦒','top:10%;left:7%','1.5rem'],['🐘','top:12%;right:9%','1.5rem'],['🦏','bottom:14%;left:8%','1.4rem'],['🌾','bottom:12%;right:9%']]) },
+        { scene:"The Cub",       text:"A small lion cub stepped from the grass. Past everyone. It stopped at {NAME}'s {T} feet.",
+          art: sc('linear-gradient(180deg,#FDE68A 0%,#FEF9C3 40%,#FEF3C7 72%,#FDE68A 100%)','🦁',[['🌾','top:12%;left:7%','1.4rem'],['☀️','top:10%;right:13%','1.7rem'],['🌿','bottom:14%;left:8%'],['✨','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Touch",     text:"{NAME} knelt slowly — {T} and certain. The cub pressed its nose into {his_her} palm. Silence.",
+          art: sc('linear-gradient(180deg,#FBB024 0%,#FCA5A5 45%,#F97316 78%,#C2410C 100%)','🤝',[['🦁','top:10%;left:7%','1.6rem'],['🌅','top:12%;right:9%','1.5rem'],['✨','bottom:14%;left:8%','1.3rem'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"Side by Side",  text:"All that {T} afternoon, {NAME} and the cub walked the golden grass together.",
+          art: sc('linear-gradient(180deg,#FF8C42 0%,#FCA5A5 35%,#FBBF24 65%,#92400E 100%)','🌄',[['🦁','top:10%;left:7%','1.5rem'],['🌾','top:14%;right:9%','1.4rem'],['✨','bottom:14%;left:8%','1.3rem'],['⭐','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"Always",        text:"Under a million stars, {NAME} made a promise. A {T} one. The cub purred. Both knew.",
+          art: sc('linear-gradient(180deg,#1C1917 0%,#292524 40%,#3C2A1E 72%,#1C1917 100%)','🌃',[['⭐','top:9%;right:12%','1.3rem'],['🌟','top:13%;left:7%','1.2rem'],['🦁','bottom:14%;left:8%','1.5rem'],['💫','bottom:12%;right:9%','1.2rem']]+STARS) },
       ]
     },
-    {
-      id: 5,
-      title: "The Magic Academy",
-      emoji: "🧙",
-      ageRange: "5–10",
-      pages: 40,
-      color: "from-emerald-400 to-teal-500",
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      description: "The Academy's letter finds only the right child. Apparently that means the one named just right.",
-      gradient: "from-emerald-300 to-teal-400",
-      spreads: [
-        { scene: "The Letter",     text: "It arrived on {NAME}'s birthday: 'We know you are {T1}. You are ready. Come.'" },
-        { scene: "The Doors",      text: "{NAME} walked in. Every candle lit at once — without a single spell." },
-        { scene: "The Gift",       text: "'How?' asked the students. 'Someone {T2} and {T3},' said the Headmistress. 'The building knows.'" },
-        { scene: "The Window",     text: "That night {NAME} thought quietly: being {T4} was the greatest magic of all." },
+    // ── Story 5 ────────────────────────────────────────────────
+    { id:5, title:"The Magic Academy", emoji:"🧙", ageRange:"5–10", pages:40,
+      color:"from-emerald-400 to-teal-500", bg:"bg-emerald-50", border:"border-emerald-200",
+      description:"The Academy's letter finds only the right child. Apparently that means the one with exactly the right name.",
+      spreads:[
+        { scene:"Birthday",      text:"On {NAME}'s birthday, a letter arrived before breakfast. Silver seal. Glittering ink. For someone {T}.",
+          art: sc('linear-gradient(135deg,#FCE7F3 0%,#FEF3C7 50%,#FDE68A 100%)','🎂',[['🎉','top:10%;left:7%','1.5rem'],['✨','top:12%;right:10%','1.3rem'],['🎁','bottom:14%;left:8%','1.4rem'],['🎈','bottom:12%;right:9%','1.4rem']]) },
+        { scene:"The Letter",    text:"It said: 'We know who you are, {NAME}. We know your gift. A {T} child. You are ready.'",
+          art: sc('linear-gradient(135deg,#FEF9C3 0%,#FEF3C7 50%,#FDE68A 100%)','✉️',[['⭐','top:10%;left:7%','1.3rem'],['✨','top:13%;right:10%','1.4rem'],['📜','bottom:14%;left:8%','1.4rem'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"The Journey",   text:"The road seemed to know where {NAME} was going. A {T} path, leading somewhere extraordinary.",
+          art: sc('linear-gradient(180deg,#D1FAE5 0%,#A7F3D0 35%,#DDD6FE 65%,#4C1D95 100%)','🏰',[['🌿','top:10%;left:7%','1.4rem'],['✨','top:12%;right:9%','1.3rem'],['🌲','bottom:14%;left:8%','1.5rem'],['🌫️','bottom:12%;right:8%','1.3rem']]) },
+        { scene:"The Doors",     text:"{NAME} stood before the great doors — {T}, steady, certain. {He_She} pushed them open.",
+          art: sc('linear-gradient(180deg,#064E3B 0%,#1E1B4B 45%,#2D0A4E 100%)','🚪',[['🕯️','top:10%;left:8%','1.5rem'],['✨','top:12%;right:9%','1.3rem'],['🌿','bottom:14%;left:7%'],['⭐','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Candles",   text:"Every candle lit at once. Every professor looked up. Not a spell spoken. Just {NAME}. Just {T}.",
+          art: sc('linear-gradient(135deg,#FEF9C3 0%,#FDE68A 40%,#F59E0B 100%)','🕯️',[['✨','top:9%;left:7%','1.4rem'],['💫','top:12%;right:9%','1.3rem'],['⭐','bottom:14%;left:8%','1.3rem'],['🌟','bottom:12%;right:9%','1.4rem']]) },
+        { scene:"The Gift",      text:"'How?' asked the students. 'Someone {T},' said the Headmistress quietly. 'The building always knows.'",
+          art: sc('linear-gradient(135deg,#DDD6FE 0%,#A78BFA 45%,#34D399 100%)','📚',[['⭐','top:9%;left:7%','1.3rem'],['✨','top:12%;right:9%','1.4rem'],['🔮','bottom:14%;left:8%','1.4rem'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"The Lesson",    text:"{NAME} opened the first book. Every page seemed written for {him_her}. Something {T} happened.",
+          art: sc('linear-gradient(135deg,#7C3AED 0%,#A78BFA 45%,#34D399 100%)','⚡',[['✨','top:9%;left:7%','1.4rem'],['💫','top:12%;right:9%','1.3rem'],['⭐','bottom:14%;left:8%','1.3rem'],['🌟','bottom:12%;right:9%','1.4rem']]) },
+        { scene:"True Magic",    text:"That night, {NAME} thought quietly: being {T} — being exactly myself — is the greatest spell of all.",
+          art: sc('linear-gradient(180deg,#1E1B4B 0%,#2E1065 40%,#4C1D95 100%)','🌟',[['✨','top:9%;left:7%','1.4rem'],['⭐','top:12%;right:9%','1.3rem'],['💫','bottom:14%;left:8%','1.2rem'],['🔮','bottom:12%;right:9%','1.4rem']]+STARS) },
       ]
     },
-    {
-      id: 6,
-      title: "The Rainbow Kingdom",
-      emoji: "🦄",
-      ageRange: "3–7",
-      pages: 32,
-      color: "from-pink-400 to-fuchsia-500",
-      bg: "bg-pink-50",
-      border: "border-pink-200",
-      description: "The painted door in the old oak has waited a long time for a name like this one.",
-      gradient: "from-pink-300 to-fuchsia-400",
-      spreads: [
-        { scene: "The Door",       text: "The rainbow door waited for someone {T1}. It waited for {NAME}." },
-        { scene: "The Kingdom",    text: "{He_She} turned the handle — {T2}, steady, sure. The whole Kingdom held its breath." },
-        { scene: "The Unicorn",    text: "'We knew you'd be {T3},' it said. 'And {T4}. We knew that too.'" },
-        { scene: "The Light",      text: "{NAME} placed one hand on the mane. Golden light spread everywhere. The Kingdom had its answer." },
+    // ── Story 6 ────────────────────────────────────────────────
+    { id:6, title:"The Rainbow Kingdom", emoji:"🦄", ageRange:"3–7", pages:32,
+      color:"from-pink-400 to-fuchsia-500", bg:"bg-pink-50", border:"border-pink-200",
+      description:"The painted door in the old oak has waited a long time for a name exactly like this one.",
+      spreads:[
+        { scene:"The Park",      text:"{NAME} had been to this park a hundred times. Today was different. Today {he_she} was {T}.",
+          art: sc('linear-gradient(180deg,#87CEEB 0%,#B0E0E6 35%,#BBF7D0 65%,#166534 100%)','🌳',[['🌸','top:10%;left:7%','1.4rem'],['🦋','top:12%;right:9%','1.3rem'],['🌺','bottom:14%;left:8%','1.4rem'],['☀️','bottom:12%;right:8%','1.7rem']]) },
+        { scene:"Old Oak Tree",  text:"Behind the oldest tree, half-hidden in the roots — a door, painted in seven colours. Never seen before.",
+          art: sc('linear-gradient(180deg,#14532D 0%,#166534 40%,#15803D 72%,#052E16 100%)','🌳',[['🍃','top:9%;left:7%','1.4rem'],['✨','top:12%;right:9%','1.3rem'],['🌿','bottom:14%;left:8%'],['🍂','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Door",      text:"No bigger than a letterbox. A brass handle. Seven colours of the rainbow. Waiting for someone {T}.",
+          art: sc('linear-gradient(135deg,#F0ABFC 0%,#818CF8 45%,#34D399 100%)','🚪',[['🌈','top:10%;left:7%','1.5rem'],['✨','top:12%;right:9%','1.3rem'],['🌸','bottom:14%;left:8%'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"The Handle",    text:"{T} and certain, {NAME} turned the handle. The door swung open. Light poured out like water.",
+          art: sc('linear-gradient(135deg,#FCE7F3 0%,#EDE9FE 50%,#DBEAFE 100%)','✨',[['🌈','top:10%;left:7%','1.5rem'],['🚪','top:12%;right:8%','1.4rem'],['💫','bottom:14%;left:8%','1.2rem'],['🌟','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Kingdom",   text:"Silver grass. Stars in a daytime sky. Colours with no name. And in the distance — unicorns, all watching {NAME}.",
+          art: sc('linear-gradient(135deg,#A7F3D0 0%,#DDD6FE 45%,#FCE7F3 100%)','🌈',[['⭐','top:9%;left:7%','1.3rem'],['💫','top:12%;right:9%','1.2rem'],['🦋','bottom:14%;left:8%','1.3rem'],['✨','bottom:12%;right:9%','1.3rem']]) },
+        { scene:"The Unicorn",   text:"The largest one came forward. 'We knew you'd be {T},' it said. Calm. Certain.",
+          art: sc('linear-gradient(135deg,#FCE7F3 0%,#F5D0FE 45%,#DDD6FE 100%)','🦄',[['⭐','top:9%;left:7%','1.3rem'],['🌈','top:12%;right:9%','1.4rem'],['✨','bottom:14%;left:8%','1.3rem'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"The Light",     text:"{NAME} placed one hand on the warm mane. A {T} light spread from {his_her} fingers — everywhere.",
+          art: sc('linear-gradient(135deg,#FEF9C3 0%,#FDE68A 40%,#F59E0B 100%)','✨',[['🦄','top:10%;left:7%','1.5rem'],['💛','top:12%;right:9%','1.3rem'],['🌟','bottom:14%;left:8%','1.4rem'],['💫','bottom:12%;right:9%','1.2rem']]) },
+        { scene:"Guardian",      text:"Every creature sang. The Kingdom had its guardian. {T}. Faithful. {NAME}. No one else.",
+          art: sc('linear-gradient(135deg,#FCE7F3 0%,#DDD6FE 45%,#DBEAFE 100%)','👑',[['🦄','top:10%;left:7%','1.5rem'],['✨','top:12%;right:9%','1.3rem'],['🌈','bottom:14%;left:8%','1.4rem'],['🌟','bottom:12%;right:9%','1.3rem']]) },
       ]
-    }
+    },
   ];
 
   // ── Letter → Traits (multiple per letter for duplicate names) ─
@@ -674,19 +722,16 @@
     };
   }
 
-  function personalise(text, name) {
+  function personaliseSpread(text, name, spreadIdx) {
     const traits = getTraits(name);
+    const t = traits[spreadIdx % (traits.length || 1)];
     const p = getPronouns();
-    const t = [0,1,2,3].map(i => traits[i % traits.length]);
     const dn = name
       ? `<span class="highlight-name">${name}</span>`
       : `<span class="highlight-name" style="color:#9ca3af;font-style:italic">your child</span>`;
     return text
       .replace(/{NAME}/g, dn)
-      .replace(/{T1}/g, `<strong class="${TRAIT_COLOURS[0]}">${t[0].adj}</strong>`)
-      .replace(/{T2}/g, `<strong class="${TRAIT_COLOURS[1]}">${t[1].adj}</strong>`)
-      .replace(/{T3}/g, `<strong class="${TRAIT_COLOURS[2]}">${t[2].adj}</strong>`)
-      .replace(/{T4}/g, `<strong class="${TRAIT_COLOURS[3]}">${t[3].adj}</strong>`)
+      .replace(/{T}/g, `<strong class="${TRAIT_COLOURS[spreadIdx % TRAIT_COLOURS.length]}">${t.adj}</strong>`)
       .replace(/{he_she}/g, p.he_she).replace(/{He_She}/g, p.He_She)
       .replace(/{him_her}/g, p.him_her).replace(/{his_her}/g, p.his_her);
   }
@@ -747,16 +792,11 @@
     document.getElementById('previewEmoji').textContent = story.emoji;
     document.getElementById('previewTitle').textContent = story.title;
 
-    // Each spread: fixed illustration placeholder on left, personalised text on right
     document.getElementById('previewText').innerHTML = story.spreads.map((sp, i) => `
-      <div class="grid grid-cols-2 min-h-[100px]">
-        <div class="bg-gradient-to-br ${story.gradient} flex flex-col items-center justify-center p-4 text-center relative">
-          <div class="text-4xl mb-1">${story.emoji}</div>
-          <div class="text-white/80 text-[10px] font-bold uppercase tracking-widest">${sp.scene}</div>
-          <div class="absolute top-2 left-2 text-[9px] bg-black/20 text-white px-1.5 py-0.5 rounded font-semibold">ART ${i+1}</div>
-        </div>
+      <div class="grid grid-cols-[1fr_1.2fr] border-b border-amber-100 last:border-0">
+        <div style="min-height:118px">${sp.art}</div>
         <div class="bg-white px-4 py-5 flex items-center">
-          <p class="text-sm leading-relaxed text-gray-700">${personalise(sp.text, name)}</p>
+          <p class="text-sm leading-relaxed text-gray-700">${personaliseSpread(sp.text, name, i)}</p>
         </div>
       </div>`).join('');
 
