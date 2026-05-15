@@ -347,10 +347,10 @@
               <span class="text-3xl" id="previewEmoji">🐉</span>
               <div>
                 <div class="font-display text-base text-gray-800" id="previewTitle">The Dragon's Secret</div>
-                <div class="text-xs text-gray-400">4 spreads · preview only</div>
+                <div class="text-xs text-gray-400">8 spreads · full story</div>
               </div>
             </div>
-            <div class="text-xs bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">PREVIEW</div>
+            <div class="text-xs bg-violet-100 text-violet-700 font-bold px-3 py-1 rounded-full">FULL STORY</div>
           </div>
           <!-- Fixed-art notice -->
           <div class="bg-gray-50 border-b border-gray-100 px-5 py-2 flex items-center gap-2 text-xs text-gray-500 font-semibold">
@@ -359,7 +359,7 @@
             <span class="text-violet-600">Only name &amp; traits change</span>
           </div>
           <!-- Spreads -->
-          <div id="previewText" class="divide-y divide-amber-100">
+          <div id="previewText" class="divide-y divide-amber-100 max-h-[640px] overflow-y-auto">
             <!-- rendered by JS -->
           </div>
           <!-- Name key -->
@@ -372,7 +372,7 @@
         <div class="mt-4 bg-white rounded-2xl border border-violet-100 p-4 flex items-start gap-3 shadow-sm">
           <div class="text-2xl flex-shrink-0">💡</div>
           <p class="text-sm text-gray-600 leading-relaxed">
-            <strong class="text-violet-700">Try it:</strong> Type a name above — each letter unlocks a unique trait (<strong class="text-violet-600">adventurous</strong>, <strong class="text-pink-600">loyal</strong>, <strong class="text-emerald-600">spirited</strong>…) woven into the story. The <strong>Name Key</strong> below the preview shows exactly what every letter means, and it's printed inside every book.
+            <strong class="text-violet-700">Try it:</strong> Type any name above — each letter unlocks a unique trait (<strong class="text-violet-600">adventurous</strong>, <strong class="text-pink-600">loyal</strong>, <strong class="text-emerald-600">spirited</strong>…) woven through all 8 spreads. The <strong>Name Key</strong> below shows what every letter means, and is printed inside every book.
           </p>
         </div>
       </div>
@@ -507,12 +507,12 @@
   // ── Scene art builder ──────────────────────────────────────
   // sc(gradient, mainEmoji, [[emoji,cssPos,fontSize], ...])
   // Called at definition time — art is static HTML, same for every buyer.
-  function sc(bg, main, ex) {
+  function sc(bg, main, ex, sx='') {
     const extras = (ex||[]).map(([e,s,f])=>
       `<span style="position:absolute;${s};font-size:${f||'1.25rem'};line-height:1">${e}</span>`
     ).join('');
     return `<div style="background:${bg};width:100%;height:100%;min-height:118px;position:relative;overflow:hidden">`
-      + extras
+      + sx + extras
       + `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:3.4rem;filter:drop-shadow(0 4px 12px rgba(0,0,0,.22));line-height:1">${main}</span>`
       + `</div>`;
   }
@@ -546,7 +546,7 @@
         { scene:"Every Day",     text:"All summer long, {NAME}'s {T} heart led {him_her} back. They played. They explored. They trusted.",
           art: sc('linear-gradient(180deg,#D1FAE5 0%,#A7F3D0 40%,#FEF9C3 75%,#FDE68A 100%)','🐉',[['🌸','bottom:12%;left:9%'],['☀️','top:10%;right:14%','1.8rem'],['🌿','bottom:14%;right:10%'],['🌺','top:14%;left:8%','1.3rem']]) },
         { scene:"The Secret",    text:"At night, {NAME} smiled up at the stars. A dragon. A garden. A {T} secret, kept forever.",
-          art: sc('linear-gradient(180deg,#1E1B4B 0%,#312E81 45%,#4C1D95 100%)','🌙',[['⭐','top:10%;right:14%','1.4rem'],['💫','top:16%;left:8%','1.2rem'],['🐉','bottom:14%;left:9%','1.5rem'],['🌟','bottom:12%;right:10%','1.3rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#1E1B4B 0%,#312E81 45%,#4C1D95 100%)','🌙',[['⭐','top:10%;right:14%','1.4rem'],['💫','top:16%;left:8%','1.2rem'],['🐉','bottom:14%;left:9%','1.5rem'],['🌟','bottom:12%;right:10%','1.3rem']], STARS) },
       ]
     },
     // ── Story 2 ────────────────────────────────────────────────
@@ -555,9 +555,9 @@
       description:"The universe searched seventeen galaxies for one navigator. The answer was written in a child's name.",
       spreads:[
         { scene:"The Window",    text:"{NAME} was {T} about one thing above all others: the stars. Every night, {he_she} counted them.",
-          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1A1B4B 55%,#2D1B69 100%)','🪟',[['⭐','top:8%;left:9%','1.3rem'],['🌟','top:10%;right:12%','1.2rem'],['💫','bottom:18%;left:8%','1.1rem'],['✨','bottom:16%;right:9%','1.1rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1A1B4B 55%,#2D1B69 100%)','🪟',[['⭐','top:8%;left:9%','1.3rem'],['🌟','top:10%;right:12%','1.2rem'],['💫','bottom:18%;left:8%','1.1rem'],['✨','bottom:16%;right:9%','1.1rem']], STARS) },
         { scene:"Beyond",        text:"Beyond the last star, {NAME} was {T} there was something wonderful waiting. {He_She} had to know.",
-          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1E1B4B 40%,#4C1D95 100%)','🔭',[['⭐','top:9%;right:11%','1.3rem'],['🌠','top:15%;left:7%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌌','bottom:14%;right:8%','1.5rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#0B0C2A 0%,#1E1B4B 40%,#4C1D95 100%)','🔭',[['⭐','top:9%;right:11%','1.3rem'],['🌠','top:15%;left:7%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌌','bottom:14%;right:8%','1.5rem']], STARS) },
         { scene:"Blue Light",    text:"One Thursday, a soft blue glow filled the garden. A {T} child does not stay inside.",
           art: sc('linear-gradient(180deg,#DBEAFE 0%,#93C5FD 40%,#3B82F6 75%,#1D4ED8 100%)','💡',[['🌙','top:10%;right:14%','1.6rem'],['⭐','top:14%;left:8%','1.2rem'],['🌿','bottom:14%;left:9%'],['✨','bottom:12%;right:10%','1.3rem']]) },
         { scene:"The Ship",      text:"A silver ship. Small. Quiet. Humming. {NAME} walked right up — {T} and steady.",
@@ -565,11 +565,11 @@
         { scene:"The Voice",     text:"'We've searched seventeen galaxies,' said the voice. 'We need someone {T}. We need {NAME}.'",
           art: sc('linear-gradient(135deg,#C7D2FE 0%,#A5B4FC 40%,#818CF8 100%)','🔊',[['⭐','top:9%;left:8%','1.2rem'],['💫','top:13%;right:11%','1.3rem'],['✨','bottom:16%;left:9%','1.2rem'],['🌟','bottom:14%;right:10%','1.3rem']]) },
         { scene:"Inside",        text:"Inside: light and maps and stars through every window. {NAME}'s {T} spirit felt at home.",
-          art: sc('linear-gradient(180deg,#050510 0%,#0B0C2A 40%,#1A0A3A 100%)','🌌',[['⭐','top:8%;right:12%','1.3rem'],['🚀','top:13%;left:8%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌟','bottom:13%;right:10%','1.3rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#050510 0%,#0B0C2A 40%,#1A0A3A 100%)','🌌',[['⭐','top:8%;right:12%','1.3rem'],['🚀','top:13%;left:8%','1.4rem'],['💫','bottom:16%;left:9%','1.2rem'],['🌟','bottom:13%;right:10%','1.3rem']], STARS) },
         { scene:"Lift Off",      text:"The ground fell away. The sky turned black. The stars grew close. The most {T} launch ever.",
           art: sc('linear-gradient(180deg,#030712 0%,#1A1B4B 35%,#FF8C00 75%,#FF4500 100%)','🚀',[['🔥','bottom:10%;left:40%','1.8rem'],['💨','bottom:14%;left:10%','1.4rem'],['💨','bottom:12%;right:10%','1.4rem'],['⭐','top:8%;right:12%','1.3rem']]) },
         { scene:"Navigator",     text:"{NAME} pointed at the next star. 'That one,' {he_she} said. 'Let's go.' The universe listened.",
-          art: sc('linear-gradient(180deg,#030712 0%,#050520 40%,#0B0C2A 100%)','🌟',[['🚀','top:10%;left:7%','1.5rem'],['⭐','top:8%;right:11%','1.3rem'],['💫','bottom:16%;left:9%','1.2rem'],['✨','bottom:13%;right:10%','1.2rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#030712 0%,#050520 40%,#0B0C2A 100%)','🌟',[['🚀','top:10%;left:7%','1.5rem'],['⭐','top:8%;right:11%','1.3rem'],['💫','bottom:16%;left:9%','1.2rem'],['✨','bottom:13%;right:10%','1.2rem']], STARS) },
       ]
     },
     // ── Story 3 ────────────────────────────────────────────────
@@ -615,7 +615,7 @@
         { scene:"Side by Side",  text:"All that {T} afternoon, {NAME} and the cub walked the golden grass together.",
           art: sc('linear-gradient(180deg,#FF8C42 0%,#FCA5A5 35%,#FBBF24 65%,#92400E 100%)','🌄',[['🦁','top:10%;left:7%','1.5rem'],['🌾','top:14%;right:9%','1.4rem'],['✨','bottom:14%;left:8%','1.3rem'],['⭐','bottom:12%;right:9%','1.2rem']]) },
         { scene:"Always",        text:"Under a million stars, {NAME} made a promise. A {T} one. The cub purred. Both knew.",
-          art: sc('linear-gradient(180deg,#1C1917 0%,#292524 40%,#3C2A1E 72%,#1C1917 100%)','🌃',[['⭐','top:9%;right:12%','1.3rem'],['🌟','top:13%;left:7%','1.2rem'],['🦁','bottom:14%;left:8%','1.5rem'],['💫','bottom:12%;right:9%','1.2rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#1C1917 0%,#292524 40%,#3C2A1E 72%,#1C1917 100%)','🌃',[['⭐','top:9%;right:12%','1.3rem'],['🌟','top:13%;left:7%','1.2rem'],['🦁','bottom:14%;left:8%','1.5rem'],['💫','bottom:12%;right:9%','1.2rem']], STARS) },
       ]
     },
     // ── Story 5 ────────────────────────────────────────────────
@@ -638,7 +638,7 @@
         { scene:"The Lesson",    text:"{NAME} opened the first book. Every page seemed written for {him_her}. Something {T} happened.",
           art: sc('linear-gradient(135deg,#7C3AED 0%,#A78BFA 45%,#34D399 100%)','⚡',[['✨','top:9%;left:7%','1.4rem'],['💫','top:12%;right:9%','1.3rem'],['⭐','bottom:14%;left:8%','1.3rem'],['🌟','bottom:12%;right:9%','1.4rem']]) },
         { scene:"True Magic",    text:"That night, {NAME} thought quietly: being {T} — being exactly myself — is the greatest spell of all.",
-          art: sc('linear-gradient(180deg,#1E1B4B 0%,#2E1065 40%,#4C1D95 100%)','🌟',[['✨','top:9%;left:7%','1.4rem'],['⭐','top:12%;right:9%','1.3rem'],['💫','bottom:14%;left:8%','1.2rem'],['🔮','bottom:12%;right:9%','1.4rem']]+STARS) },
+          art: sc('linear-gradient(180deg,#1E1B4B 0%,#2E1065 40%,#4C1D95 100%)','🌟',[['✨','top:9%;left:7%','1.4rem'],['⭐','top:12%;right:9%','1.3rem'],['💫','bottom:14%;left:8%','1.2rem'],['🔮','bottom:12%;right:9%','1.4rem']], STARS) },
       ]
     },
     // ── Story 6 ────────────────────────────────────────────────
@@ -838,7 +838,7 @@
   // ── FAQ ────────────────────────────────────────────────────
   const FAQS = [
     { q: "How exactly does the personalisation work?", a: "It goes far beyond just adding a name. Every letter in the child's name corresponds to a unique character trait — adventurous, loyal, curious, spirited, and so on. These traits are woven naturally into the story so the adventure is genuinely shaped by who the child is. A Name Key inside the back cover shows parents and children exactly what each letter means." },
-    { q: "Can I preview the full book before buying?", a: "The live preview shows the first four paragraphs of the story with your chosen name. Once you place an order, you'll receive a digital proof within 1 hour for your approval before we print." },
+    { q: "Can I preview the full book before buying?", a: "Yes — the live preview above shows all 8 spreads of the story with your child's name and traits woven in. You can read the complete narrative before placing an order." },
     { q: "How long does printing and shipping take?", a: "Digital PDFs are available for instant download immediately after purchase. Printed hardcovers are dispatched within 2 business days and typically arrive within 3–5 days (Singapore) or 7–14 days internationally." },
     { q: "What if I need to change the name after ordering?", a: "Contact us within 1 hour of placing your order and we can make changes free of charge. After that, amendments may incur a small reprint fee." },
     { q: "Is this suitable as a last-minute gift?", a: "Absolutely! The Digital PDF option is perfect for last-minute gifting — purchase today, download instantly, and email it as a gift. Many parents print it at home and wrap it up." },
